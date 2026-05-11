@@ -1,0 +1,49 @@
+# rinko-gateway API 网关配置
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: lb://rinko-auth
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: oss-service
+          uri: lb://rinko-oss
+          predicates:
+            - Path=/api/v1/oss/**
+        - id: log-service
+          uri: lb://rinko-log
+          predicates:
+            - Path=/api/v1/logs/**
+        - id: notify-service
+          uri: lb://rinko-notify
+          predicates:
+            - Path=/api/v1/notify/**
+        - id: scheduler-service
+          uri: lb://rinko-scheduler
+          predicates:
+            - Path=/api/v1/scheduler/**
+    sentinel:
+      transport:
+        dashboard: localhost:8080
+      datasource:
+        ds:
+          nacos:
+            server-addr: 127.0.0.1:18848
+            data-id: sentinel-gateway-rules
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: gw-flow
+
+rinko:
+  gateway:
+    auth:
+      jwt-secret: ${JWT_SECRET:rinko-jwt-secret-key-minimum-32-bytes!!}
+      whitelist-paths:
+        - /api/v1/auth/register
+        - /api/v1/auth/login
+        - /api/v1/auth/token/refresh
+        - /oauth2/**
+        - /v3/api-docs/**
+        - /swagger-ui/**
+        - /actuator/health

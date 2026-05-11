@@ -1,0 +1,31 @@
+# rinko-scheduler 调度服务配置
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/rinko_scheduler
+    username: postgres
+    password: rinko
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: rinko
+    password: anchorage
+  kafka:
+    bootstrap-servers: localhost:9092
+
+rinko:
+  flyway:
+    enabled: true
+  scheduler:
+    quartz:
+      thread-pool-size: 10
+    jobs:
+      auto-startup: true

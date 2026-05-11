@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: rinko-scheduler
+  config:
+    import:
+      - optional:nacos:application-dev.yml
+      - optional:nacos:rinko-scheduler-dev.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:127.0.0.1:18848}
+        namespace: ${NACOS_NAMESPACE:rinko}
+        group: anchorage
+        username: nacos
+        password: isincere
+      config:
+        server-addr: ${NACOS_SERVER:127.0.0.1:18848}
+        namespace: ${NACOS_NAMESPACE:rinko}
+        group: anchorage
+        username: nacos
+        password: isincere
+        file-extension: yml
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.threadPool.threadCount: 10
+
+server:
+  port: 8085
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true

@@ -1,0 +1,36 @@
+# rinko-auth 认证服务配置
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/rinko_auth
+    username: postgres
+    password: rinko
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: rinko
+    password: anchorage
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  cloud:
+    bus:
+      enabled: true
+    stream:
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          group: rinko-auth
+
+rinko:
+  flyway:
+    enabled: true
+  auth:
+    jwt:
+      secret: ${JWT_SECRET:change-me-in-production-rinko-auth-secret-key}
+      access-token-expiration: 900
+      refresh-token-expiration: 604800

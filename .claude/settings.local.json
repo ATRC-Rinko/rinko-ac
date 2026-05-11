@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec new:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions:*)",
+      "Bash(cd:*)",
+      "Bash(ls -la openspec/changes/project-standards/specs/*/spec.md)",
+      "Bash(openspec list:*)",
+      "Bash(for dir:*)",
+      "Bash(do mkdir:*)",
+      "Bash(cp \"openspec/changes/project-standards/specs/$dir/spec.md\" \"openspec/specs/$dir/spec.md\")",
+      "Bash(echo \"Synced $dir\")",
+      "Bash(done)",
+      "Bash(./mvnw clean:*)",
+      "Bash(ls .github/ISSUE_TEMPLATE/ .github/PULL_REQUEST_TEMPLATE.md .github/workflows/*.yml)",
+      "Bash(ls rinko-*/Dockerfile)",
+      "Bash(for spec:*)",
+      "Bash(cp \"openspec/changes/setup-git-and-cicd/specs/$spec/spec.md\" \"openspec/specs/$spec/spec.md\")",
+      "Bash(echo \"Synced $spec\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''Tasks:'''', d[''''progress''''][''''total'''']\\); print\\(''''State:'''', d[''''state'''']\\)\")",
+      "Bash(./mvnw dependency:tree -pl rinko-log)",
+      "Bash(jar tf:*)",
+      "Bash(./mvnw dependency:resolve -DincludeArtifactIds=jackson-annotations)",
+      "Bash(mkdir -p openspec/specs/distributed-transaction)",
+      "Bash(cp \"openspec/changes/add-distributed-transaction/specs/distributed-transaction/spec.md\" \"openspec/specs/distributed-transaction/spec.md\")"
+    ]
+  }
+}

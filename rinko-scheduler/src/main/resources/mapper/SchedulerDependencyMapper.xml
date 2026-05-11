@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rinko.scheduler.repository.SchedulerDependencyMapper">
+    <resultMap id="depMap" type="com.rinko.scheduler.entity.SchedulerDependency">
+        <id property="id" column="id"/>
+        <result property="jobId" column="job_id"/>
+        <result property="dependsOnJobId" column="depends_on_job_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    <insert id="insert">INSERT INTO scheduler_dependencies (id,job_id,depends_on_job_id,created_at) VALUES (#{id},#{jobId},#{dependsOnJobId},NOW())</insert>
+    <delete id="deleteById">DELETE FROM scheduler_dependencies WHERE id=#{id}</delete>
+    <select id="findByJobId" resultMap="depMap">SELECT * FROM scheduler_dependencies WHERE job_id=#{jobId}</select>
+    <select id="findByDependsOnJobId" resultMap="depMap">SELECT * FROM scheduler_dependencies WHERE depends_on_job_id=#{dependsOnJobId}</select>
+</mapper>

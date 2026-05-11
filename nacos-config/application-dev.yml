@@ -1,0 +1,81 @@
+# =====================================================
+# Rinko 公共配置（所有服务共享）
+# Nacos namespace: rinko-dev
+# Data ID: application-dev.yml
+# Group: DEFAULT_GROUP
+# =====================================================
+
+# SkyWalking 链路追踪
+skywalking:
+  agent:
+    service_name: ${spring.application.name}
+    backend_service: localhost:11800
+
+# Metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# 日志格式
+logging:
+  config: classpath:logback-spring.xml
+
+# Graceful Shutdown
+server:
+  shutdown: graceful
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  threads:
+    virtual:
+      enabled: true
+
+# Feign / HTTP
+spring.cloud.openfeign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 30000
+
+# 熔断与重试
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 500ms
+
+# Seata 分布式事务
+seata:
+  registry:
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:18848
+      namespace: rinko
+      group: anchorage
+      username: nacos
+      password: isincere
+  config:
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:18848
+      namespace: rinko
+      group: anchorage
+      username: nacos
+      password: isincere
+  tx-service-group: rinko-tx-group
+  service:
+    vgroup-mapping:
+      rinko-tx-group: default

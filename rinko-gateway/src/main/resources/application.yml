@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: rinko-gateway
+  config:
+    import:
+      - optional:nacos:application-dev.yml
+      - optional:nacos:rinko-gateway-dev.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:127.0.0.1:18848}
+        namespace: ${NACOS_NAMESPACE:rinko}
+        group: anchorage
+        username: nacos
+        password: isincere
+      config:
+        server-addr: ${NACOS_SERVER:127.0.0.1:18848}
+        namespace: ${NACOS_NAMESPACE:rinko}
+        group: anchorage
+        username: nacos
+        password: isincere
+        file-extension: yml
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

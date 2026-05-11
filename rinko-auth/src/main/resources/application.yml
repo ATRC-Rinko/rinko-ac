@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: rinko-auth
+  config:
+    import:
+      - optional:nacos:application-dev.yml
+      - optional:nacos:rinko-auth-dev.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:127.0.0.1:18848}
+        namespace: ${NACOS_NAMESPACE:rinko}
+        group: anchorage
+        username: nacos
+        password: isincere
+      config:
+        server-addr: ${NACOS_SERVER:127.0.0.1:18848}
+        namespace: ${NACOS_NAMESPACE:rinko}
+        group: anchorage
+        username: nacos
+        password: isincere
+        file-extension: yml
+
+server:
+  port: 8081
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
