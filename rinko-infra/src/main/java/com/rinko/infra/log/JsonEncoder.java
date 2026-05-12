@@ -2,6 +2,8 @@ package com.rinko.infra.log;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.encoder.EncoderBase;
+import org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.SkyWalkingContextJsonProvider;
+import org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.TraceIdJsonProvider;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -17,7 +19,7 @@ import java.util.Map;
  */
 public class JsonEncoder extends EncoderBase<ILoggingEvent> {
 
-    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
             .withZone(ZoneOffset.UTC);
 
     private String serviceName = "rinko-ac";
@@ -32,8 +34,8 @@ public class JsonEncoder extends EncoderBase<ILoggingEvent> {
         logMap.put("timestamp", ISO_FORMATTER.format(Instant.ofEpochMilli(event.getTimeStamp())));
         logMap.put("level", event.getLevel().toString());
         logMap.put("service", serviceName);
-        logMap.put("traceId", event.getMDCPropertyMap().getOrDefault("traceId", "N/A"));
-        logMap.put("spanId", event.getMDCPropertyMap().getOrDefault("spanId", "N/A"));
+        logMap.put("traceId", event.getLoggerContextVO().getPropertyMap().getOrDefault(TraceIdJsonProvider.TRACING_ID, "N/A"));
+        logMap.put("spanId", event.getLoggerContextVO().getPropertyMap().getOrDefault(SkyWalkingContextJsonProvider.SKYWALKING_CONTEXT, "N/A"));
         logMap.put("class", event.getLoggerName());
         logMap.put("message", event.getFormattedMessage());
         logMap.put("thread", event.getThreadName());
@@ -58,8 +60,9 @@ public class JsonEncoder extends EncoderBase<ILoggingEvent> {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         for (Map.Entry<String, Object> entry : logMap.entrySet()) {
-            if (sb.length() > 1)
+            if (sb.length() > 1) {
                 sb.append(", ");
+            }
             sb.append("\"").append(entry.getKey()).append("\": ");
             appendValue(sb, entry.getValue());
         }
@@ -79,8 +82,9 @@ public class JsonEncoder extends EncoderBase<ILoggingEvent> {
             sb.append("{");
             boolean first = true;
             for (Map.Entry<?, ?> e : ((Map<?, ?>) value).entrySet()) {
-                if (!first)
+                if (!first) {
                     sb.append(", ");
+                }
                 sb.append("\"").append(e.getKey()).append("\": ");
                 appendValue(sb, e.getValue());
                 first = false;

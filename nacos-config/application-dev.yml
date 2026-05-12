@@ -6,10 +6,13 @@
 # =====================================================
 
 # SkyWalking 链路追踪
+# 本地启动添加 JVM 参数: -javaagent:skywalking-agent/skywalking-agent.jar
+# Docker 通过 Dockerfile COPY 并在 ENTRYPOINT 中加载
 skywalking:
   agent:
-    service_name: ${spring.application.name}
-    backend_service: localhost:11800
+    service_name: ${SW_AGENT_NAME:${spring.application.name}}
+  collector:
+    backend_service: ${SW_AGENT_COLLECTOR_BACKEND_SERVICES:localhost:11800}
 
 # Metrics
 management:
@@ -65,17 +68,19 @@ seata:
       server-addr: 127.0.0.1:18848
       namespace: rinko
       group: anchorage
+      application: seata-server
       username: nacos
-      password: isincere
-  config:
-    type: nacos
-    nacos:
-      server-addr: 127.0.0.1:18848
-      namespace: rinko
-      group: anchorage
-      username: nacos
-      password: isincere
+      password: isincere.
+#  config:
+#    type: nacos
+#    nacos:
+#      server-addr: 127.0.0.1:18848
+#      namespace: rinko
+#      group: anchorage
+#      username: nacos
+#      password: isincere.
   tx-service-group: rinko-tx-group
   service:
+    service-port: 8091
     vgroup-mapping:
       rinko-tx-group: default

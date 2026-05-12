@@ -216,3 +216,27 @@ All service Dockerfiles SHALL include `--add-opens` flags in the `ENV JAVA_OPTS`
 - **WHEN** a service Docker container starts
 - **THEN** the JVM SHALL have `--add-opens` flags from `ENV JAVA_OPTS`
 - **AND** the application SHALL start without module access errors
+
+---
+
+### Requirement: SkyWalking Agent Integration
+
+All service containers SHALL load SkyWalking Java Agent at startup via `-javaagent:/sw-agent/skywalking-agent.jar`.
+
+The agent jar SHALL be distributed via Docker Compose shared volume from a one-time init container that downloads the Apache release.
+
+Agent configuration SHALL be injected via JVM system properties or environment variables:
+- `SW_AGENT_NAME` — service name
+- `SW_AGENT_COLLECTOR_BACKEND_SERVICES` — OAP gRPC address
+
+#### Scenario: Service starts with SkyWalking agent
+
+- **WHEN** a service container starts with `-javaagent:/sw-agent/skywalking-agent.jar`
+- **THEN** trace data SHALL be sent to SkyWalking OAP at port 11800
+- **AND** log traceId SHALL match SkyWalking traceId via `TraceIdConverter`
+
+#### Scenario: SkyWalking OAP unavailable
+
+- **WHEN** OAP is unreachable
+- **THEN** the service SHALL still start successfully
+- **AND** logs SHALL show traceId as "N/A" until OAP recovers

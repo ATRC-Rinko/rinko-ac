@@ -46,7 +46,7 @@
         <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
 
         <!-- Druid -->
-        <druid.version>1.2.24</druid.version>
+        <druid.version>1.2.28</druid.version>
 
         <!-- Flyway -->
         <flyway.version>10.21.0</flyway.version>
@@ -65,6 +65,9 @@
 
         <!-- Test -->
         <kotest.version>5.9.1</kotest.version>
+
+        <!--LOG-->
+        <skywalking.log.version>9.6.0</skywalking.log.version>
 
         <!-- Plugins -->
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -97,7 +100,7 @@
             <!-- Druid -->
             <dependency>
                 <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <artifactId>druid-spring-boot-4-starter</artifactId>
                 <version>${druid.version}</version>
             </dependency>
 
@@ -199,6 +202,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <!--SKYWALKING LOG-->
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-logback-1.x</artifactId>
+            <version>${skywalking.log.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

@@ -3,14 +3,18 @@ version: "3.9"
 services:
   # ==================== Nacos ====================
   nacos:
-    image: nacos/nacos-server:v2.5.1
+    image: nacos/nacos-server:v2.5.2
     container_name: rinko-nacos
     environment:
       - MODE=standalone
       - PREFER_HOST_MODE=hostname
+      - NACOS_AUTH_TOKEN=VGhpc0lzTXlDdXN0b21TZWNyZXRLZXkwMTIzNDU2Nzg=
+      - NACOS_AUTH_IDENTITY_KEY=rinko
+      - NACOS_AUTH_IDENTITY_VALUE=anchorage
     ports:
       - "18848:8848"
       - "19848:9848"
+      - "18080:8080"
     volumes:
       - nacos-data:/home/nacos/data
     healthcheck:
@@ -21,16 +25,16 @@ services:
 
   # ==================== PostgreSQL ====================
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:0.8.2-pg18-trixie
     container_name: rinko-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: rinko
-      POSTGRES_DB: rinko_admin
+      POSTGRES_DB: anchorage
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
       - ./docker/init-sql:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -40,7 +44,7 @@ services:
 
   # ==================== Redis ====================
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     container_name: rinko-redis
     command: redis-server --requirepass rinko_redis_2024
     ports:
@@ -55,7 +59,7 @@ services:
 
   # ==================== RabbitMQ ====================
   rabbitmq:
-    image: rabbitmq:4.0-management-alpine
+    image: rabbitmq:latest
     container_name: rinko-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: rinko
@@ -71,50 +75,52 @@ services:
       timeout: 5s
       retries: 10
 
-  # ==================== Zookeeper ====================
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.8.0
-    container_name: rinko-zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-    volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-      - zookeeper-log:/var/lib/zookeeper/log
+  #  # ==================== Zookeeper ====================
+  #  zookeeper:
+  #    image: confluentinc/cp-zookeeper:latest
+  #    container_name: rinko-zookeeper
+  #    environment:
+  #      ZOOKEEPER_CLIENT_PORT: 2181
+  #      ZOOKEEPER_TICK_TIME: 2000
+  #    ports:
+  #      - "2181:2181"
+  #    volumes:
+  #      - zookeeper-data:/var/lib/zookeeper/data
+  #      - zookeeper-log:/var/lib/zookeeper/log
 
   # ==================== Kafka ====================
   kafka:
-    image: confluentinc/cp-kafka:7.8.0
+    image: confluentinc/cp-kafka:latest
     container_name: rinko-kafka
-    depends_on:
-      - zookeeper
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
     ports:
       - "9092:9092"
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "kafka:9092"]
       interval: 10s
       timeout: 5s
       retries: 15
 
   # ==================== ClickHouse ====================
   clickhouse:
-    image: clickhouse/clickhouse-server:24.12-alpine
+    image: clickhouse/clickhouse-server:latest
     container_name: rinko-clickhouse
     environment:
       CLICKHOUSE_USER: rinko
       CLICKHOUSE_PASSWORD: anchorage
-      CLICKHOUSE_DB: rinko_log
+      CLICKHOUSE_DB: rinko_logs
     ports:
       - "8123:8123"
       - "9000:9000"
@@ -129,13 +135,20 @@ services:
 
   # ==================== SkyWalking OAP ====================
   skywalking-oap:
-    image: apache/skywalking-oap-server:10.1.0
+    image: apache/skywalking-oap-server:latest
     container_name: rinko-skywalking-oap
     environment:
-      SW_STORAGE: h2
+      SW_STORAGE: postgresql
+      SW_JDBC_URL: jdbc:postgresql://postgres:5432/oap
+      SW_DATA_SOURCE_USER: postgres
+      SW_DATA_SOURCE_PASSWORD: rinko
+      SW_CORE_DEFAULT_CACHE_EXPIRATION: 300
     ports:
       - "11800:11800"
       - "12800:12800"
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "bash", "-c", "curl -f http://localhost:12800/health"]
       interval: 10s
@@ -144,7 +157,7 @@ services:
 
   # ==================== SkyWalking UI ====================
   skywalking-ui:
-    image: apache/skywalking-ui:10.1.0
+    image: apache/skywalking-ui:latest
     container_name: rinko-skywalking-ui
     depends_on:
       - skywalking-oap
@@ -155,28 +168,61 @@ services:
 
   # ==================== Seata Server ====================
   seata-server:
-    image: seataio/seata-server:2.2.0
+    image: apache/seata-server:2.6.0
     container_name: rinko-seata
     depends_on:
       - nacos
       - postgres
     environment:
       - SEATA_PORT=8091
-      - SEATA_IP=seata-server
+      - HOST=0.0.0.0
+#      - SEATA_IP=seata-server
     ports:
       - "8091:8091"
       - "7091:7091"
     volumes:
+      - "/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime"
+      - "/usr/share/zoneinfo/Asia/Shanghai:/etc/timezone"
+      - "./docker/seata-server/application.yml:/seata-server/resources/application.yml"
       - seata-data:/seata-server/logs
+  # ==================== RustFS ====================
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rinko-rustfs
+    security_opt:
+      - "no-new-privileges:true"
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    environment:
+      - RUSTFS_VOLUMES=/data/rustfs0
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfsadmin
+      - RUSTFS_OBS_LOGGER_LEVEL=info
+    volumes:
+      - rustfs-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:9000/health && curl -f http://localhost:9001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   nacos-data:
   postgres-data:
   redis-data:
   rabbitmq-data:
-  zookeeper-data:
-  zookeeper-log:
+  #  zookeeper-data:
+  #  zookeeper-log:
   kafka-data:
   clickhouse-data:
   clickhouse-log:
   seata-data:
+  rustfs-data:

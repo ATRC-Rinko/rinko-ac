@@ -11,15 +11,14 @@
             <serviceName>rinko-ac</serviceName>
         </encoder>
     </appender>
-
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/application.log</file>
+        <file>logs/rinko-gateway.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/rinko-gateway.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder class="com.rinko.infra.log.JsonEncoder">
-            <serviceName>rinko-ac</serviceName>
+            <serviceName>rinko-gateway</serviceName>
         </encoder>
     </appender>
 

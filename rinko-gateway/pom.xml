@@ -55,12 +55,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Sentinel -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-        </dependency>
-
         <!-- Nacos -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- add TID(traceId) field -->
-        <provider class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.TraceIdJsonProvider">
-        </provider>
-        <!-- add SW_CTX(SkyWalking context) field -->
-        <provider class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.SkyWalkingContextJsonProvider">
-        </provider>
         <encoder class="com.rinko.infra.log.JsonEncoder">
-            <serviceName>rinko-ac</serviceName>
+            <serviceName>rinko-auth</serviceName>
         </encoder>
     </appender>
-
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/application.log</file>
+        <file>logs/rinko-auth.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/rinko-auth.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder class="com.rinko.infra.log.JsonEncoder">
-            <serviceName>rinko-ac</serviceName>
+            <serviceName>rinko-auth</serviceName>
         </encoder>
     </appender>
 
