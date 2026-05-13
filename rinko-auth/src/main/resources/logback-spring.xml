@@ -16,8 +16,14 @@
         </encoder>
     </appender>
 
+    <appender name="KAFKA" class="com.rinko.infra.log.KafkaLogAppender">
+        <topic>rinko-logs</topic>
+        <serviceName>rinko-auth</serviceName>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
+        <appender-ref ref="KAFKA"/>
     </root>
 </configuration>

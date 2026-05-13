@@ -7,8 +7,4 @@
         <result property="dependsOnJobId" column="depends_on_job_id"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
-    <insert id="insert">INSERT INTO scheduler_dependencies (id,job_id,depends_on_job_id,created_at) VALUES (#{id},#{jobId},#{dependsOnJobId},NOW())</insert>
-    <delete id="deleteById">DELETE FROM scheduler_dependencies WHERE id=#{id}</delete>
-    <select id="findByJobId" resultMap="depMap">SELECT * FROM scheduler_dependencies WHERE job_id=#{jobId}</select>
-    <select id="findByDependsOnJobId" resultMap="depMap">SELECT * FROM scheduler_dependencies WHERE depends_on_job_id=#{dependsOnJobId}</select>
 </mapper>

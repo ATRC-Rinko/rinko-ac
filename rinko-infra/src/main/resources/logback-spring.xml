@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- add TID(traceId) field -->
-        <provider class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.TraceIdJsonProvider">
-        </provider>
-        <!-- add SW_CTX(SkyWalking context) field -->
-        <provider class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.SkyWalkingContextJsonProvider">
-        </provider>
         <encoder class="com.rinko.infra.log.JsonEncoder">
             <serviceName>rinko-ac</serviceName>
         </encoder>

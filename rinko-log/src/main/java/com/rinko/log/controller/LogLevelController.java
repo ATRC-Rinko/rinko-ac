@@ -4,6 +4,7 @@ import com.rinko.log.entity.LogLevelConfig;
 import com.rinko.log.service.LogLevelManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,14 +15,11 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v1/logs")
+@RequiredArgsConstructor
 @Tag(name = "Log Level Management", description = "动态日志级别管理接口")
 public class LogLevelController {
 
     private final LogLevelManagementService logLevelManagementService;
-
-    public LogLevelController(LogLevelManagementService logLevelManagementService) {
-        this.logLevelManagementService = logLevelManagementService;
-    }
 
     @GetMapping("/levels")
     @Operation(summary = "获取所有日志级别配置")

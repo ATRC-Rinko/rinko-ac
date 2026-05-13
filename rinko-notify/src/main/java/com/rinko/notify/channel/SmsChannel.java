@@ -1,5 +1,6 @@
 package com.rinko.notify.channel;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.rinko.notify.entity.NotificationHistory;
 import com.rinko.notify.repository.NotificationHistoryMapper;
 import com.rinko.notify.provider.SmsProvider;
@@ -29,10 +30,16 @@ public class SmsChannel implements NotificationChannel {
         try {
             historyMapper.insert(history);
             smsProvider.send(history.getRecipient(), "Rinko", history.getTemplateCode(), history.getContent());
-            historyMapper.updateStatus(history.getId(), "SENT", null);
+            historyMapper.update(null, new LambdaUpdateWrapper<NotificationHistory>()
+                    .eq(NotificationHistory::getId, history.getId())
+                    .set(NotificationHistory::getStatus, "SENT")
+                    .set(NotificationHistory::getErrorMessage, null));
         } catch (Exception e) {
             log.error("SMS send failed: {}", e.getMessage());
-            historyMapper.updateStatus(history.getId(), "FAILED", e.getMessage());
+            historyMapper.update(null, new LambdaUpdateWrapper<NotificationHistory>()
+                    .eq(NotificationHistory::getId, history.getId())
+                    .set(NotificationHistory::getStatus, "FAILED")
+                    .set(NotificationHistory::getErrorMessage, e.getMessage()));
         }
     }
 }

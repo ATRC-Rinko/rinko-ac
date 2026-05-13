@@ -1,5 +1,8 @@
 package com.rinko.infra.id;
 
+import com.rinko.infra.exception.InternalException;
+import org.springframework.stereotype.Component;
+
 import java.net.NetworkInterface;
 import java.security.SecureRandom;
 import java.util.Enumeration;
@@ -8,6 +11,7 @@ import java.util.Enumeration;
  * 雪花算法 ID 生成器。
  * workerId 基于本机 MAC 地址自动计算。
  */
+@Component
 public class SnowflakeIdGenerator {
 
     private static final long EPOCH = 1700000000000L;
@@ -46,7 +50,7 @@ public class SnowflakeIdGenerator {
     public synchronized long nextId() {
         long timestamp = timeGen();
         if (timestamp < lastTimestamp) {
-            throw new IllegalStateException("Clock moved backwards. Refusing to generate id.");
+            throw new InternalException("Clock moved backwards. Refusing to generate id.");
         }
         if (timestamp == lastTimestamp) {
             sequence = (sequence + 1) & SEQUENCE_MASK;

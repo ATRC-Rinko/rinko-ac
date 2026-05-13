@@ -37,7 +37,8 @@ spring:
   threads:
     virtual:
       enabled: true
-
+  kafka:
+    bootstrap-servers: localhost:9092
 # Feign / HTTP
 spring.cloud.openfeign:
   client:

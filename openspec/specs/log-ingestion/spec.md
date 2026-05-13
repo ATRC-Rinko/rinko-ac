@@ -20,6 +20,13 @@ Each consumed message SHALL be a JSON object conforming to the log field specifi
 - **THEN** `rinko-log` SHALL consume the message within 5 seconds
 - **AND** the log SHALL be written to ClickHouse `logs` table
 
+#### Scenario: Log messages arrive from business modules via KafkaLogAppender
+
+- **WHEN** a business module sends a `LogMessage` JSON to the `rinko-logs` topic via `KafkaLogAppender`
+- **THEN** `LogKafkaConsumer` SHALL receive the message
+- **AND** `LogIngestionService` SHALL buffer and flush the message to ClickHouse
+- **AND** the original log level, service name, trace ID, message, and exception SHALL be preserved
+
 #### Scenario: Kafka unavailable during startup
 
 - **WHEN** Kafka is unreachable when `rinko-log` starts

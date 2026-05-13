@@ -12,10 +12,5 @@
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
-    <insert id="insert">INSERT INTO scheduler_jobs (id,name,type,cron_expression,config,enabled,max_retries,created_at,updated_at) VALUES (#{id},#{name},#{type},#{cronExpression},#{config},#{enabled},#{maxRetries},NOW(),NOW())</insert>
-    <update id="update">UPDATE scheduler_jobs SET name=#{name},type=#{type},cron_expression=#{cronExpression},config=#{config},enabled=#{enabled},max_retries=#{maxRetries},updated_at=NOW() WHERE id=#{id}</update>
-    <delete id="deleteById">DELETE FROM scheduler_jobs WHERE id=#{id}</delete>
-    <select id="findAll" resultMap="jobMap">SELECT * FROM scheduler_jobs ORDER BY name</select>
-    <select id="findById" resultMap="jobMap">SELECT * FROM scheduler_jobs WHERE id=#{id}</select>
-    <select id="findByName" resultMap="jobMap">SELECT * FROM scheduler_jobs WHERE name=#{name}</select>
+
 </mapper>

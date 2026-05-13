@@ -1,5 +1,7 @@
 package com.rinko.infra.dto;
 
+import com.rinko.infra.exception.ValidationException;
+
 import java.util.Locale;
 import java.util.Objects;
 
@@ -34,7 +36,7 @@ public class SortOrder {
             try {
                 return valueOf(value.toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid sort direction: " + value + ". Use ASC or DESC.");
+                throw new ValidationException("Invalid sort direction: " + value + ". Use ASC or DESC.");
             }
         }
     }

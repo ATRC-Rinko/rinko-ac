@@ -1,5 +1,7 @@
 package com.rinko.oss.service;
 
+import com.rinko.infra.exception.InternalException;
+import com.rinko.infra.exception.NotFoundException;
 import com.rinko.oss.config.OssProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +26,7 @@ public class LocalStorageService implements StorageService {
         try {
             Files.createDirectories(basePath);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create storage directory: " + basePath, e);
+            throw new InternalException("Failed tocreate storage directory: " + basePath, e);
         }
     }
 
@@ -38,7 +40,7 @@ public class LocalStorageService implements StorageService {
             }
             log.debug("Stored local file: {}", filePath);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file: " + key, e);
+            throw new InternalException("Failed tostore file: " + key, e);
         }
     }
 
@@ -47,7 +49,7 @@ public class LocalStorageService implements StorageService {
         try {
             return Files.newInputStream(basePath.resolve(key));
         } catch (IOException e) {
-            throw new RuntimeException("File not found: " + key, e);
+            throw new NotFoundException("File not found: " + key, e);
         }
     }
 
@@ -72,7 +74,7 @@ public class LocalStorageService implements StorageService {
         try {
             Files.createDirectories(partsDir);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create parts dir: " + partsDir, e);
+            throw new InternalException("Failed tocreate parts dir: " + partsDir, e);
         }
         return uploadId;
     }
@@ -86,7 +88,7 @@ public class LocalStorageService implements StorageService {
                 data.transferTo(os);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload part " + partNumber, e);
+            throw new InternalException("Failed toupload part " + partNumber, e);
         }
         return "etag-" + partNumber;
     }
@@ -105,7 +107,7 @@ public class LocalStorageService implements StorageService {
             }
             deleteDirectory(partsDir.getParent());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to complete multipart upload: " + key, e);
+            throw new InternalException("Failed tocomplete multipart upload: " + key, e);
         }
     }
 

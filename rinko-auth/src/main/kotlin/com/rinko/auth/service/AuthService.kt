@@ -9,15 +9,17 @@ import com.rinko.auth.security.TokenBlacklistService
 import com.rinko.infra.exception.UnauthorizedException
 import com.rinko.infra.exception.ValidationException
 import com.rinko.infra.id.SnowflakeIdGenerator
+import org.apache.seata.spring.annotation.GlobalTransactional
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 @Service
 class AuthService(
+    @Value("\${rinko.auth.jwt.access-token-expiration}") private val accessTokenExpiration: Long,
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
@@ -28,7 +30,7 @@ class AuthService(
         private val log = LoggerFactory.getLogger(AuthService::class.java)
     }
 
-    @Transactional
+    @GlobalTransactional
     fun register(request: RegisterRequest): Mono<AuthResponse> {
         return userRepository.findByUsername(request.username)
             .hasElement()
@@ -49,7 +51,7 @@ class AuthService(
                             email = request.email,
                             passwordHash = encodedPw,
                             status = UserStatus.ACTIVE
-                        )
+                        ).apply { isNewRecord = true }
                         userRepository.save(user)
                             .flatMap { saved -> createTokenResponse(saved) }
                     }
@@ -68,7 +70,7 @@ class AuthService(
                 if (!passwordEncoder.matches(request.password, user.passwordHash)) {
                     return@flatMap Mono.error<AuthResponse>(UnauthorizedException("Invalid username or password"))
                 }
-                val updated = user.copy(updatedAt = LocalDateTime.now())
+                val updated = user.copy(updatedAt = LocalDateTime.now()).apply { isNewRecord = false }
                 userRepository.save(updated).flatMap { createTokenResponse(it) }
             }
     }
@@ -123,7 +125,7 @@ class AuthService(
         val refreshToken = jwtTokenProvider.generateRefreshToken(user.id, user.username)
         return Mono.just(
             AuthResponse(
-                tokenPair = TokenPair(accessToken, refreshToken, 900),
+                tokenPair = TokenPair(accessToken, refreshToken, accessTokenExpiration),
                 userId = user.id,
                 username = user.username
             )

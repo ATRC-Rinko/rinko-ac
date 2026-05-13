@@ -11,7 +11,4 @@
         <result property="result" column="result"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
-    <insert id="insert">INSERT INTO scheduler_executions (id,job_id,status,start_time,retry_count,created_at) VALUES (#{id},#{jobId},#{status},NOW(),#{retryCount},NOW())</insert>
-    <update id="update">UPDATE scheduler_executions SET status=#{status},end_time=NOW(),retry_count=#{retryCount},result=#{result} WHERE id=#{id}</update>
-    <select id="findByJobId" resultMap="execMap">SELECT * FROM scheduler_executions WHERE job_id=#{jobId} ORDER BY start_time DESC</select>
 </mapper>

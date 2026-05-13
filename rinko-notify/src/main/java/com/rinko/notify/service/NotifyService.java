@@ -1,5 +1,7 @@
 package com.rinko.notify.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.notify.channel.InAppChannel;
 import com.rinko.notify.entity.NotificationHistory;
@@ -9,6 +11,7 @@ import com.rinko.notify.repository.NotificationTemplateMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -27,8 +30,12 @@ public class NotifyService {
     }
 
     public NotificationHistory send(String channel, String templateCode, String recipient, Map<String, String> variables) {
-        NotificationTemplate template = templateMapper.findByCode(templateCode);
-        if (template == null) throw new IllegalArgumentException("Template not found: " + templateCode);
+        NotificationTemplate template = templateMapper.selectOne(
+                new LambdaQueryWrapper<NotificationTemplate>()
+                        .eq(NotificationTemplate::getCode, templateCode));
+        if (template == null) {
+            throw new IllegalArgumentException("Template not found: " + templateCode);
+        }
 
         String subject = replaceVars(template.getSubject(), variables);
         String content = replaceVars(template.getBody(), variables);
@@ -47,8 +54,12 @@ public class NotifyService {
     }
 
     public Map<String, Object> sendBatch(String channel, String templateCode, List<String> recipients, Map<String, String> variables) {
-        NotificationTemplate template = templateMapper.findByCode(templateCode);
-        if (template == null) throw new IllegalArgumentException("Template not found: " + templateCode);
+        NotificationTemplate template = templateMapper.selectOne(
+                new LambdaQueryWrapper<NotificationTemplate>()
+                        .eq(NotificationTemplate::getCode, templateCode));
+        if (template == null) {
+            throw new IllegalArgumentException("Template not found: " + templateCode);
+        }
 
         String subject = replaceVars(template.getSubject(), variables);
         String content = replaceVars(template.getBody(), variables);
@@ -77,23 +88,39 @@ public class NotifyService {
     }
 
     public List<NotificationHistory> getInbox(String recipient, Boolean isRead) {
-        return historyMapper.findByRecipientAndChannel(recipient, "IN_APP", isRead);
+        var wrapper = new LambdaQueryWrapper<NotificationHistory>()
+                .eq(NotificationHistory::getRecipient, recipient)
+                .eq(NotificationHistory::getChannel, "IN_APP")
+                .eq(isRead != null, NotificationHistory::isRead, isRead)
+                .orderByDesc(NotificationHistory::getCreatedAt);
+        return historyMapper.selectList(wrapper);
     }
 
     public long getUnreadCount(String recipient) {
-        return historyMapper.countUnread(recipient);
+        var wrapper = new LambdaQueryWrapper<NotificationHistory>()
+                .eq(NotificationHistory::getRecipient, recipient)
+                .eq(NotificationHistory::getChannel, "IN_APP")
+                .eq(NotificationHistory::isRead, false);
+        return historyMapper.selectCount(wrapper);
     }
 
     public void markRead(long notificationId) {
-        historyMapper.markRead(notificationId);
+        historyMapper.update(null, new LambdaUpdateWrapper<NotificationHistory>()
+                .eq(NotificationHistory::getId, notificationId)
+                .set(NotificationHistory::isRead, true)
+                .set(NotificationHistory::getReadAt, LocalDateTime.now()));
     }
 
     public NotificationTemplate getTemplate(String code) {
-        return templateMapper.findByCode(code);
+        return templateMapper.selectOne(
+                new LambdaQueryWrapper<NotificationTemplate>()
+                        .eq(NotificationTemplate::getCode, code));
     }
 
     private String replaceVars(String text, Map<String, String> vars) {
-        if (text == null || vars == null) return text;
+        if (text == null || vars == null) {
+            return text;
+        }
         String result = text;
         for (Map.Entry<String, String> e : vars.entrySet()) {
             result = result.replace("{" + e.getKey() + "}", e.getValue());

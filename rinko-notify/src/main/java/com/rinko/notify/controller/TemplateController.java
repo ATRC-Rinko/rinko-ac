@@ -1,5 +1,6 @@
 package com.rinko.notify.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rinko.infra.dto.ApiResponse;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.notify.entity.NotificationTemplate;
@@ -27,7 +28,9 @@ public class TemplateController {
     @GetMapping
     @Operation(summary = "列出所有模板")
     public ApiResponse<List<NotificationTemplate>> listTemplates() {
-        return ApiResponse.success(templateMapper.findAll());
+        return ApiResponse.success(templateMapper.selectList(
+                new LambdaQueryWrapper<NotificationTemplate>()
+                        .orderByAsc(NotificationTemplate::getCode)));
     }
 
     @PostMapping
@@ -48,13 +51,15 @@ public class TemplateController {
     @PutMapping("/{id}")
     @Operation(summary = "更新模板")
     public ApiResponse<NotificationTemplate> updateTemplate(@PathVariable long id, @RequestBody Map<String, String> body) {
-        NotificationTemplate template = templateMapper.findById(id);
-        if (template == null) return ApiResponse.error(404, "Template not found");
+        NotificationTemplate template = templateMapper.selectById(id);
+        if (template == null) {
+            return ApiResponse.error(404, "Template not found");
+        }
         template.setName(body.getOrDefault("name", template.getName()));
         template.setSubject(body.getOrDefault("subject", template.getSubject()));
         template.setBody(body.getOrDefault("body", template.getBody()));
         template.setChannels(body.getOrDefault("channels", template.getChannels()));
-        templateMapper.update(template);
+        templateMapper.updateById(template);
         return ApiResponse.success(template);
     }
 

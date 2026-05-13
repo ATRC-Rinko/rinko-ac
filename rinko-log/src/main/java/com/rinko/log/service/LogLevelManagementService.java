@@ -1,10 +1,12 @@
 package com.rinko.log.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rinko.infra.exception.NotFoundException;
 import com.rinko.infra.exception.ValidationException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.log.entity.LogLevelConfig;
-import com.rinko.log.repository.LogLevelConfigRepository;
+import com.rinko.log.repository.LogLevelConfigMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.bus.BusProperties;
@@ -21,29 +23,22 @@ import java.util.Set;
  * 动态日志级别管理服务。
  */
 @Service
+@RequiredArgsConstructor
 public class LogLevelManagementService {
 
     private static final Logger log = LoggerFactory.getLogger(LogLevelManagementService.class);
     private static final Set<String> VALID_LEVELS = Set.of("TRACE", "DEBUG", "INFO", "WARN", "ERROR");
 
-    private final LogLevelConfigRepository logLevelConfigRepository;
+    private final LogLevelConfigMapper logLevelConfigMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final BusProperties busProperties;
-    private final SnowflakeIdGenerator idGenerator = new SnowflakeIdGenerator();
-
-    public LogLevelManagementService(LogLevelConfigRepository logLevelConfigRepository,
-                                       ApplicationEventPublisher eventPublisher,
-                                       BusProperties busProperties) {
-        this.logLevelConfigRepository = logLevelConfigRepository;
-        this.eventPublisher = eventPublisher;
-        this.busProperties = busProperties;
-    }
+    private final SnowflakeIdGenerator idGenerator;
 
     /**
      * 获取所有日志级别配置。
      */
-    public Iterable<LogLevelConfig> getAllConfigs() {
-        return logLevelConfigRepository.findAll();
+    public List<LogLevelConfig> getAllConfigs() {
+        return logLevelConfigMapper.selectList(null);
     }
 
     /**
@@ -55,25 +50,30 @@ public class LogLevelManagementService {
             throw new ValidationException("Invalid log level: " + level + ". Valid: " + VALID_LEVELS);
         }
 
-        LogLevelConfig config = logLevelConfigRepository
-                .findByServiceNameAndLoggerName(service, loggerName)
-                .orElseGet(() -> {
-                    LogLevelConfig newConfig = new LogLevelConfig();
-                    newConfig.setId(idGenerator.nextId());
-                    newConfig.setServiceName(service);
-                    newConfig.setLoggerName(loggerName);
-                    newConfig.setCreatedAt(LocalDateTime.now());
-                    return newConfig;
-                });
+        LogLevelConfig config = logLevelConfigMapper.selectOne(
+                new LambdaQueryWrapper<LogLevelConfig>()
+                        .eq(LogLevelConfig::getServiceName, service)
+                        .eq(LogLevelConfig::getLoggerName, loggerName));
 
-        config.setLogLevel(level);
-        config.setUpdatedAt(LocalDateTime.now());
-        LogLevelConfig saved = logLevelConfigRepository.save(config);
+        if (config == null) {
+            config = new LogLevelConfig();
+            config.setId(idGenerator.nextId());
+            config.setServiceName(service);
+            config.setLoggerName(loggerName);
+            config.setCreatedAt(LocalDateTime.now());
+            config.setLogLevel(level);
+            config.setUpdatedAt(LocalDateTime.now());
+            logLevelConfigMapper.insert(config);
+        } else {
+            config.setLogLevel(level);
+            config.setUpdatedAt(LocalDateTime.now());
+            logLevelConfigMapper.updateById(config);
+        }
 
         publishEvent(service, loggerName, level);
 
         log.info("Log level changed: service={}, logger={}, level={}", service, loggerName, level);
-        return saved;
+        return config;
     }
 
     /**
@@ -81,10 +81,16 @@ public class LogLevelManagementService {
      */
     @Transactional
     public void resetLogLevel(String service, String loggerName) {
-        LogLevelConfig config = logLevelConfigRepository
-                .findByServiceNameAndLoggerName(service, loggerName)
-                .orElseThrow(() -> new NotFoundException("Log level config not found for " + service + "/" + loggerName));
-        logLevelConfigRepository.delete(config);
+        LogLevelConfig config = logLevelConfigMapper.selectOne(
+                new LambdaQueryWrapper<LogLevelConfig>()
+                        .eq(LogLevelConfig::getServiceName, service)
+                        .eq(LogLevelConfig::getLoggerName, loggerName));
+
+        if (config == null) {
+            throw new NotFoundException("Log level config not found for " + service + "/" + loggerName);
+        }
+
+        logLevelConfigMapper.deleteById(config.getId());
         publishEvent(service, loggerName, null);
         log.info("Log level reset: service={}, logger={}", service, loggerName);
     }

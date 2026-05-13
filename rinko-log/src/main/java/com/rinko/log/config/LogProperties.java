@@ -28,7 +28,7 @@ public class LogProperties {
         private String password = "anchorage";
 
         public String getJdbcUrl() {
-            return "jdbc:clickhouse:http://" + host + ":" + port + "/" + database;
+            return "jdbc:clickhouse://" + host + ":" + port + "/" + database;
         }
     }
 }

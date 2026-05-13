@@ -1,9 +1,9 @@
 package com.rinko.notify.channel;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.rinko.notify.entity.NotificationHistory;
 import com.rinko.notify.repository.NotificationHistoryMapper;
 import com.rinko.notify.provider.EmailProvider;
-import com.rinko.notify.config.NotifyProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -28,10 +28,16 @@ public class EmailChannel implements NotificationChannel {
         try {
             historyMapper.insert(history);
             emailProvider.send(history.getRecipient(), history.getSubject(), history.getContent());
-            historyMapper.updateStatus(history.getId(), "SENT", null);
+            historyMapper.update(null, new LambdaUpdateWrapper<NotificationHistory>()
+                    .eq(NotificationHistory::getId, history.getId())
+                    .set(NotificationHistory::getStatus, "SENT")
+                    .set(NotificationHistory::getErrorMessage, null));
         } catch (Exception e) {
             log.error("Email send failed: {}", e.getMessage());
-            historyMapper.updateStatus(history.getId(), "FAILED", e.getMessage());
+            historyMapper.update(null, new LambdaUpdateWrapper<NotificationHistory>()
+                    .eq(NotificationHistory::getId, history.getId())
+                    .set(NotificationHistory::getStatus, "FAILED")
+                    .set(NotificationHistory::getErrorMessage, e.getMessage()));
         }
     }
 }

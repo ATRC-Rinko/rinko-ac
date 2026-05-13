@@ -53,6 +53,7 @@ class ReactiveGlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleUnknown(ex: Exception, exchange: ServerWebExchange): Mono<ApiResponse<*>> {
         log.error("Unhandled exception", ex)
+        ex.printStackTrace()
         exchange.response.statusCode = HttpStatus.valueOf(500)
         return Mono.just(ApiResponse.error<String>(500, "Internal Server Error"))
     }

@@ -1,6 +1,7 @@
 package com.rinko.scheduler.executor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rinko.infra.exception.InternalException;
 import com.rinko.scheduler.entity.SchedulerJob;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -29,7 +30,7 @@ public class HttpJobExecutor implements JobExecutor {
                 default -> restTemplate.getForObject(url, String.class);
             };
         } catch (Exception e) {
-            throw new RuntimeException("HTTP job failed: " + e.getMessage(), e);
+            throw new InternalException("HTTP job failed: " + e.getMessage(), e);
         }
     }
 }

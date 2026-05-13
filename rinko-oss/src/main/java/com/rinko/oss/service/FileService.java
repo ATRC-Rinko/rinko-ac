@@ -1,8 +1,9 @@
 package com.rinko.oss.service;
 
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rinko.infra.dto.PageResponse;
+import com.rinko.infra.exception.InternalException;
 import com.rinko.infra.exception.NotFoundException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.oss.config.OssProperties;
@@ -90,8 +91,9 @@ public class FileService {
     }
 
     public FileMetadata getMetadata(long fileId) {
-        return fileMetadataMapper.findById(fileId)
-                .orElseThrow(() -> new NotFoundException("File not found: " + fileId));
+        FileMetadata meta = fileMetadataMapper.selectById(fileId);
+        if (meta == null) throw new NotFoundException("File not found: " + fileId);
+        return meta;
     }
 
     public InputStream download(long fileId) {
@@ -112,12 +114,14 @@ public class FileService {
     }
 
     public PageResponse<FileMetadata> listFiles(Long parentId, int page, int size) {
-        PageHelper.startPage(page, size);
-        List<FileMetadata> list = parentId != null
-                ? fileMetadataMapper.findFilesByParentId(parentId)
-                : fileMetadataMapper.findAllFiles();
-        PageInfo<FileMetadata> pageInfo = new PageInfo<>(list);
-        return new PageResponse<>(pageInfo.getList(), pageInfo.getTotal(), page, size);
+        var wrapper = new LambdaQueryWrapper<FileMetadata>()
+                .eq(FileMetadata::isDirectory, false)
+                .orderByDesc(FileMetadata::getCreatedAt);
+        if (parentId != null) {
+            wrapper.eq(FileMetadata::getParentId, parentId);
+        }
+        Page<FileMetadata> result = fileMetadataMapper.selectPage(new Page<>(page, size), wrapper);
+        return new PageResponse<>(result.getRecords(), result.getTotal(), page, size);
     }
 
     @Transactional
@@ -135,19 +139,25 @@ public class FileService {
     }
 
     public List<FileVersion> listVersions(long fileId) {
-        return fileVersionRepository.findByFileIdOrderByVersionDesc(fileId);
+        return fileVersionRepository.selectList(
+                new LambdaQueryWrapper<FileVersion>()
+                        .eq(FileVersion::getFileId, fileId)
+                        .orderByDesc(FileVersion::getVersion));
     }
 
     @Transactional
     public void rollback(long fileId, int targetVersion) {
         FileMetadata meta = getMetadata(fileId);
-        FileVersion target = fileVersionRepository.findByFileIdAndVersion(fileId, targetVersion)
-                .orElseThrow(() -> new NotFoundException("Version not found: " + targetVersion));
+        FileVersion target = fileVersionRepository.selectOne(
+                new LambdaQueryWrapper<FileVersion>()
+                        .eq(FileVersion::getFileId, fileId)
+                        .eq(FileVersion::getVersion, targetVersion));
+        if (target == null) throw new NotFoundException("Version not found: " + targetVersion);
         meta.setStoragePath(target.getStoragePath());
         meta.setCurrentVersion(targetVersion);
         meta.setSha256(target.getSha256());
         meta.setFileSize(target.getFileSize());
-        fileMetadataMapper.update(meta);
+        fileMetadataMapper.updateById(meta);
     }
 
     public InputStream downloadByKey(String key) {
@@ -156,7 +166,11 @@ public class FileService {
 
     public List<VideoResolutionEntity> listVideoResolutions(long fileId) {
         FileMetadata meta = getMetadata(fileId);
-        return videoResolutionRepository.findByFileIdAndVersionOrderByResolution(fileId, meta.getCurrentVersion());
+        return videoResolutionRepository.selectList(
+                new LambdaQueryWrapper<VideoResolutionEntity>()
+                        .eq(VideoResolutionEntity::getFileId, fileId)
+                        .eq(VideoResolutionEntity::getVersion, meta.getCurrentVersion())
+                        .orderByAsc(VideoResolutionEntity::getResolution));
     }
 
     public MultipartSession initiateMultipartUpload(String originalName, String contentType, Long parentId) {
@@ -219,7 +233,7 @@ public class FileService {
             byte[] hash = MessageDigest.getInstance("SHA-256").digest(bytes);
             return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new InternalException("SHA-256 algorithm not available", e);
         }
     }
 }

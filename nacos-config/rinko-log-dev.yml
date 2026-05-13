@@ -1,10 +1,36 @@
 # rinko-log 日志服务配置
+server:
+  port: 10317
+
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/rinko_log
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/rinko_log?currentSchema=log
     username: postgres
     password: rinko
-    driver-class-name: org.postgresql.Driver
+    druid:
+      initial-size: 20
+      max-active: 100
+      min-idle: 5
+      max-wait: 60000
+      filter:
+        stat:
+          enabled: false
+          log-slow-sql: false
+          slow-sql-millis: 2000
+        wall:
+          enabled: false
+  bus:
+    enabled: true
+  stream:
+    kafka:
+      binder:
+        brokers: localhost:9092
+    bindings:
+      springCloudBusInput:
+        destination: springCloudBus
+        group: rinko-log
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -13,12 +39,18 @@ spring:
       host: localhost
       port: 6379
       database: 0
+      password: rinko_redis_2024
   kafka:
     bootstrap-servers: localhost:9092
+# MyBatis-Plus
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 rinko:
   flyway:
-    enabled: true
+    enabled: false
   log:
     sampling-rate: 1.0
     clickhouse:

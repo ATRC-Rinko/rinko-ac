@@ -1,5 +1,7 @@
 # rinko-oss 对象存储服务配置
 spring:
+  kafka:
+    bootstrap-servers: localhost:9092
   datasource:
     url: jdbc:postgresql://localhost:5432/rinko_oss
     username: postgres

@@ -3,6 +3,7 @@ package com.rinko.log.service;
 import com.rinko.infra.dto.PageResponse;
 import com.rinko.log.entity.LogEntry;
 import com.rinko.log.repository.ClickHouseLogRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,15 +12,12 @@ import java.util.List;
  * 日志查询服务。
  */
 @Service
+@RequiredArgsConstructor
 public class LogQueryService {
 
     private static final long MAX_RANGE_DAYS = 7;
 
     private final ClickHouseLogRepository clickHouseLogRepository;
-
-    public LogQueryService(ClickHouseLogRepository clickHouseLogRepository) {
-        this.clickHouseLogRepository = clickHouseLogRepository;
-    }
 
     /**
      * 分页查询日志，校验时间范围不超过 7 天。

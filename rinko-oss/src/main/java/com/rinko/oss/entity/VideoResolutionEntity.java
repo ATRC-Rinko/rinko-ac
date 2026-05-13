@@ -1,15 +1,16 @@
 package com.rinko.oss.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
 @Data
-@Table("video_resolutions")
+@TableName("video_resolutions")
 public class VideoResolutionEntity {
-    @Id
+    @TableId(type = IdType.INPUT)
     private Long id;
     private long fileId;
     private int version;

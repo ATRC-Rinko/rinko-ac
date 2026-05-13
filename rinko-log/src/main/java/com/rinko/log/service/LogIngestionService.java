@@ -3,6 +3,7 @@ package com.rinko.log.service;
 import com.rinko.log.config.LogProperties;
 import com.rinko.log.dto.LogMessage;
 import com.rinko.log.repository.ClickHouseLogRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,6 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * 日志摄入服务：批量缓冲 + 定时冲刷 + 采样。
  */
 @Service
+@RequiredArgsConstructor
 public class LogIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(LogIngestionService.class);
@@ -25,10 +27,6 @@ public class LogIngestionService {
     private final LogProperties logProperties;
     private final List<LogMessage> buffer = Collections.synchronizedList(new ArrayList<>());
 
-    public LogIngestionService(ClickHouseLogRepository clickHouseLogRepository, LogProperties logProperties) {
-        this.clickHouseLogRepository = clickHouseLogRepository;
-        this.logProperties = logProperties;
-    }
 
     /**
      * 接收一条日志消息。根据采样率决定是否写入，WARN/ERROR 始终写入。
@@ -38,7 +36,7 @@ public class LogIngestionService {
             return;
         }
         buffer.add(message);
-        if (buffer.size() >= 1000) {
+        if (buffer.size() >= 100) {
             flush();
         }
     }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="com.rinko.infra.log.JsonEncoder">
+            <serviceName>rinko-notify</serviceName>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/rinko-notify.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/rinko-notify.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="com.rinko.infra.log.JsonEncoder">
+            <serviceName>rinko-notify</serviceName>
+        </encoder>
+    </appender>
+    <appender name="KAFKA" class="com.rinko.infra.log.KafkaLogAppender">
+        <topic>rinko-logs</topic>
+        <serviceName>rinko-notify</serviceName>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="KAFKA"/>
+    </root>
+</configuration>

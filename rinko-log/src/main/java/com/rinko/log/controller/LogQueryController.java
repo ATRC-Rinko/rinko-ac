@@ -5,21 +5,20 @@ import com.rinko.log.entity.LogEntry;
 import com.rinko.log.service.LogQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 日志查询 API。
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/logs")
 @Tag(name = "Log Query", description = "日志查询接口")
 public class LogQueryController {
 
     private final LogQueryService logQueryService;
 
-    public LogQueryController(LogQueryService logQueryService) {
-        this.logQueryService = logQueryService;
-    }
 
     @GetMapping
     @Operation(summary = "查询日志")

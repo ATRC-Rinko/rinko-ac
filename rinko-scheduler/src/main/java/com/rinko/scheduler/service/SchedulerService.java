@@ -1,5 +1,7 @@
 package com.rinko.scheduler.service;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.rinko.infra.exception.InternalException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.scheduler.entity.SchedulerDependency;
 import com.rinko.scheduler.entity.SchedulerExecution;
@@ -7,6 +9,7 @@ import com.rinko.scheduler.entity.SchedulerJob;
 import com.rinko.scheduler.repository.SchedulerDependencyMapper;
 import com.rinko.scheduler.repository.SchedulerExecutionMapper;
 import com.rinko.scheduler.repository.SchedulerJobMapper;
+import lombok.RequiredArgsConstructor;
 import org.quartz.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class SchedulerService {
 
     private final SchedulerJobMapper jobMapper;
@@ -22,20 +26,10 @@ public class SchedulerService {
     private final SchedulerDependencyMapper dependencyMapper;
     private final Scheduler quartzScheduler;
     private final RabbitTemplate rabbitTemplate;
-    private final SnowflakeIdGenerator idGenerator = new SnowflakeIdGenerator();
-
-    public SchedulerService(SchedulerJobMapper jobMapper, SchedulerExecutionMapper executionMapper,
-                             SchedulerDependencyMapper dependencyMapper, Scheduler quartzScheduler,
-                             RabbitTemplate rabbitTemplate) {
-        this.jobMapper = jobMapper;
-        this.executionMapper = executionMapper;
-        this.dependencyMapper = dependencyMapper;
-        this.quartzScheduler = quartzScheduler;
-        this.rabbitTemplate = rabbitTemplate;
-    }
+    private final SnowflakeIdGenerator idGenerator;
 
     public List<SchedulerJob> listJobs() {
-        return jobMapper.findAll();
+        return jobMapper.selectList(Wrappers.<SchedulerJob>lambdaQuery().orderByAsc(SchedulerJob::getName));
     }
 
     @Transactional
@@ -60,7 +54,7 @@ public class SchedulerService {
         try {
             quartzScheduler.triggerJob(JobKey.jobKey("job-" + id));
         } catch (SchedulerException e) {
-            throw new RuntimeException("Failed to trigger job", e);
+            throw new InternalException("Failed totrigger job", e);
         }
     }
 
@@ -68,7 +62,7 @@ public class SchedulerService {
         try {
             quartzScheduler.pauseJob(JobKey.jobKey("job-" + id));
         } catch (SchedulerException e) {
-            throw new RuntimeException("Failed to pause job", e);
+            throw new InternalException("Failed topause job", e);
         }
     }
 
@@ -76,7 +70,7 @@ public class SchedulerService {
         try {
             quartzScheduler.resumeJob(JobKey.jobKey("job-" + id));
         } catch (SchedulerException e) {
-            throw new RuntimeException("Failed to resume job", e);
+            throw new InternalException("Failed toresume job", e);
         }
     }
 
@@ -93,7 +87,7 @@ public class SchedulerService {
                     .build();
             quartzScheduler.scheduleJob(detail, trigger);
         } catch (SchedulerException e) {
-            throw new RuntimeException("Failed to schedule Quartz job", e);
+            throw new InternalException("Failed toschedule Quartz job", e);
         }
     }
 
@@ -109,7 +103,7 @@ public class SchedulerService {
     public void recordEnd(SchedulerExecution exec, String status, String result) {
         exec.setStatus(status);
         exec.setResult(result);
-        executionMapper.update(exec);
+        executionMapper.updateById(exec);
     }
 
     public void alertFailure(SchedulerJob job, String error) {
@@ -118,7 +112,9 @@ public class SchedulerService {
     }
 
     public List<SchedulerExecution> getExecutions(long jobId) {
-        return executionMapper.findByJobId(jobId);
+        return executionMapper.selectList(Wrappers.lambdaQuery(SchedulerExecution.class)
+                .eq(SchedulerExecution::getJobId, jobId)
+                .orderByDesc(SchedulerExecution::getStartTime));
     }
 
     @Transactional
@@ -136,10 +132,12 @@ public class SchedulerService {
     }
 
     public List<SchedulerDependency> getDownstream(long jobId) {
-        return dependencyMapper.findByDependsOnJobId(jobId);
+        return dependencyMapper.selectList(Wrappers.lambdaQuery(SchedulerDependency.class)
+                .eq(SchedulerDependency::getDependsOnJobId, jobId));
     }
 
     public List<SchedulerDependency> getUpstream(long jobId) {
-        return dependencyMapper.findByJobId(jobId);
+        return dependencyMapper.selectList(Wrappers.lambdaQuery(SchedulerDependency.class)
+                .eq(SchedulerDependency::getJobId, jobId));
     }
 }

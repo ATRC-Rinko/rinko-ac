@@ -1,15 +1,16 @@
 package com.rinko.scheduler.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
 @Data
-@Table("scheduler_jobs")
+@TableName("scheduler_jobs")
 public class SchedulerJob {
-    @Id
+    @TableId(type = IdType.INPUT)
     private Long id;
     private String name;
     private String type;

@@ -3,29 +3,33 @@ server:
   port: 10315
 
 spring:
+  kafka:
+    bootstrap-servers: localhost:9092
   cloud:
     gateway:
-      routes:
-        - id: auth-service
-          uri: lb://rinko-auth
-          predicates:
-            - Path=/api/v1/auth/**
-        - id: oss-service
-          uri: lb://rinko-oss
-          predicates:
-            - Path=/api/v1/oss/**
-        - id: log-service
-          uri: lb://rinko-log
-          predicates:
-            - Path=/api/v1/logs/**
-        - id: notify-service
-          uri: lb://rinko-notify
-          predicates:
-            - Path=/api/v1/notify/**
-        - id: scheduler-service
-          uri: lb://rinko-scheduler
-          predicates:
-            - Path=/api/v1/scheduler/**
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: lb://rinko-auth
+              predicates:
+                - Path=/api/v1/auth/**
+            - id: oss-service
+              uri: lb://rinko-oss
+              predicates:
+                - Path=/api/v1/oss/**
+            - id: log-service
+              uri: lb://rinko-log
+              predicates:
+                - Path=/api/v1/logs/**
+            - id: notify-service
+              uri: lb://rinko-notify
+              predicates:
+                - Path=/api/v1/notify/**
+            - id: scheduler-service
+              uri: lb://rinko-scheduler
+              predicates:
+                - Path=/api/v1/scheduler/**
     sentinel:
       transport:
         dashboard: localhost:8080
@@ -41,7 +45,7 @@ spring:
 rinko:
   gateway:
     auth:
-      jwt-secret: ${JWT_SECRET:rinko-jwt-secret-key-minimum-32-bytes!!}
+      jwt-secret: ${JWT_SECRET:anchorage_rinko}
       whitelist-paths:
         - /api/v1/auth/register
         - /api/v1/auth/login

@@ -2,25 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.rinko.notify.repository.NotificationHistoryMapper">
 
-    <resultMap id="historyMap" type="com.rinko.notify.entity.NotificationHistory">
-        <id property="id" column="id"/>
-        <result property="channel" column="channel"/>
-        <result property="templateCode" column="template_code"/>
-        <result property="recipient" column="recipient"/>
-        <result property="subject" column="subject"/>
-        <result property="content" column="content"/>
-        <result property="status" column="status"/>
-        <result property="isRead" column="is_read"/>
-        <result property="readAt" column="read_at"/>
-        <result property="errorMessage" column="error_message"/>
-        <result property="createdAt" column="created_at"/>
-    </resultMap>
-
-    <insert id="insert" parameterType="com.rinko.notify.entity.NotificationHistory">
-        INSERT INTO notification_history (id, channel, template_code, recipient, subject, content, status, created_at)
-        VALUES (#{id}, #{channel}, #{templateCode}, #{recipient}, #{subject}, #{content}, #{status}, NOW())
-    </insert>
-
     <insert id="batchInsert">
         INSERT INTO notification_history (id, channel, template_code, recipient, subject, content, status, created_at) VALUES
         <foreach collection="list" item="item" separator=",">
@@ -28,27 +9,5 @@
              #{item.subject}, #{item.content}, #{item.status}, NOW())
         </foreach>
     </insert>
-
-    <update id="updateStatus">
-        UPDATE notification_history SET status = #{status}, error_message = #{errorMessage} WHERE id = #{id}
-    </update>
-
-    <update id="markRead">
-        UPDATE notification_history SET is_read = TRUE, read_at = NOW() WHERE id = #{id}
-    </update>
-
-    <select id="findByRecipientAndChannel" resultMap="historyMap">
-        SELECT * FROM notification_history WHERE recipient = #{recipient} AND channel = #{channel}
-        <if test="isRead != null">AND is_read = #{isRead}</if>
-        ORDER BY created_at DESC
-    </select>
-
-    <select id="countUnread" resultType="long">
-        SELECT count(*) FROM notification_history WHERE recipient = #{recipient} AND channel = 'IN_APP' AND is_read = FALSE
-    </select>
-
-    <select id="findById" resultMap="historyMap">
-        SELECT * FROM notification_history WHERE id = #{id}
-    </select>
 
 </mapper>

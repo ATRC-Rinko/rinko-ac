@@ -1,6 +1,7 @@
 package com.rinko.scheduler.executor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rinko.infra.exception.InternalException;
 import com.rinko.scheduler.entity.SchedulerJob;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,7 @@ public class BeanJobExecutor implements JobExecutor {
             Object result = method.invoke(bean);
             return result != null ? result.toString() : "OK";
         } catch (Exception e) {
-            throw new RuntimeException("Bean job failed: " + e.getMessage(), e);
+            throw new InternalException("Bean job failed: " + e.getMessage(), e);
         }
     }
 }

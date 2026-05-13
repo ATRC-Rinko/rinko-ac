@@ -77,7 +77,7 @@ public class VideoProcessor {
                     entity.setStatus("FAILED");
                     entity.setErrorMessage(e.getMessage());
                 }
-                videoResolutionRepository.update(entity);
+                videoResolutionRepository.updateById(entity);
             }
         } catch (IOException e) {
             log.error("Video transcode failed for fileId={}", fileId, e);
