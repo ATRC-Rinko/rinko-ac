@@ -5,9 +5,6 @@ spring:
     username: postgres
     password: rinko
     driver-class-name: org.postgresql.Driver
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
   data:
     redis:
       host: localhost
@@ -25,8 +22,6 @@ spring:
       auto-offset-reset: earliest
 
 rinko:
-  flyway:
-    enabled: true
   notify:
     channels:
       email:

@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableDiscoveryClient
 @EnableDruid
 @EnableScheduling
+@EnableKafka
 public class RinkoLogApplication {
 
     public static void main(String[] args) {

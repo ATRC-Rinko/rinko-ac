@@ -5,9 +5,6 @@ spring:
     username: postgres
     password: rinko
     driver-class-name: org.postgresql.Driver
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
   data:
     redis:
       host: localhost
@@ -22,8 +19,6 @@ spring:
     bootstrap-servers: localhost:9092
 
 rinko:
-  flyway:
-    enabled: true
   scheduler:
     quartz:
       thread-pool-size: 10

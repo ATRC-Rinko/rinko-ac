@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,11 +32,12 @@ public class LogIngestionService {
     /**
      * 接收一条日志消息。根据采样率决定是否写入，WARN/ERROR 始终写入。
      */
-    public void ingest(LogMessage message) {
-        if (!shouldSample(message)) {
+    public void ingest(String message) {
+        LogMessage logMessage = readLogMessage(message);
+        if (!shouldSample(logMessage)) {
             return;
         }
-        buffer.add(message);
+        buffer.add(logMessage);
         if (buffer.size() >= 100) {
             flush();
         }
@@ -44,10 +46,11 @@ public class LogIngestionService {
     /**
      * 批量接收日志消息。
      */
-    public void ingestBatch(List<LogMessage> messages) {
-        for (LogMessage msg : messages) {
-            if (shouldSample(msg)) {
-                buffer.add(msg);
+    public void ingestBatch(List<String> messages) {
+        for (String msg : messages) {
+            LogMessage logMessage = readLogMessage(msg);
+            if (shouldSample(logMessage)) {
+                buffer.add(logMessage);
             }
         }
         if (buffer.size() >= 1000) {
@@ -88,5 +91,17 @@ public class LogIngestionService {
             return true;
         }
         return ThreadLocalRandom.current().nextDouble() < rate;
+    }
+
+
+    /**
+     * 字符串转对象
+     *
+     * @param message
+     * @return
+     */
+    private LogMessage readLogMessage(String message) {
+        JsonMapper build = JsonMapper.builder().build();
+        return build.readValue(message, LogMessage.class);
     }
 }

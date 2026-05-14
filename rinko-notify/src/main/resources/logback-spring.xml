@@ -18,6 +18,7 @@
     <appender name="KAFKA" class="com.rinko.infra.log.KafkaLogAppender">
         <topic>rinko-logs</topic>
         <serviceName>rinko-notify</serviceName>
+        <bootstrapServers>${KAFKA_BOOTSTRAP:-localhost:9092}</bootstrapServers>
     </appender>
 
     <root level="INFO">

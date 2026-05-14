@@ -75,37 +75,26 @@ services:
       timeout: 5s
       retries: 10
 
-  #  # ==================== Zookeeper ====================
-  #  zookeeper:
-  #    image: confluentinc/cp-zookeeper:latest
-  #    container_name: rinko-zookeeper
-  #    environment:
-  #      ZOOKEEPER_CLIENT_PORT: 2181
-  #      ZOOKEEPER_TICK_TIME: 2000
-  #    ports:
-  #      - "2181:2181"
-  #    volumes:
-  #      - zookeeper-data:/var/lib/zookeeper/data
-  #      - zookeeper-log:/var/lib/zookeeper/log
-
   # ==================== Kafka ====================
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: rinko-kafka
     environment:
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_NODE_ID: 1
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
     ports:
       - "9092:9092"
+      - "9093:9093"
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
@@ -189,7 +178,7 @@ services:
     environment:
       - SEATA_PORT=8091
       - HOST=0.0.0.0
-#      - SEATA_IP=seata-server
+      - SEATA_IP=seata-server
     ports:
       - "8091:8091"
       - "7091:7091"
@@ -226,6 +215,127 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  rinko-auth:
+    image: rinko-auth:latest
+    container_name: rinko-auth
+    depends_on:
+      - nacos
+      - seata-server
+      - skywalking-oap
+      - kafka
+    environment:
+      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+        --add-opens java.base/java.util=ALL-UNNAMED
+    entrypoint:
+      [
+        "java",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
+        "-Dskywalking.agent.service_name=rinko-auth",
+        "-Dskywalking.collector.backend_service=skywalking-oap:11800",
+        "-jar",
+        "/app/app.jar"
+      ]
+    volumes:
+      - ./docker/skywalking-agent/:/app/skywalking-agent/
+
+  rinko-gateway:
+    image: rinko-gateway:latest
+    container_name: rinko-gateway
+    depends_on:
+      - nacos
+      - seata-server
+      - skywalking-oap
+      - kafka
+    environment:
+      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+        --add-opens java.base/java.util=ALL-UNNAMED
+      - NACOS_SERVER=nacos:8848
+    entrypoint:
+      [
+        "java",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
+        "-Dskywalking.agent.service_name=rinko-gateway",
+        "-Dskywalking.collector.backend_service=skywalking-oap:11800",
+        "-jar",
+        "/app/app.jar"
+      ]
+    ports:
+      - "10315:10315"
+    volumes:
+      - ./docker/skywalking-agent/:/app/skywalking-agent/
+
+  rinko-log:
+    image: rinko-log:latest
+    container_name: rinko-log
+    depends_on:
+      - nacos
+      - seata-server
+      - skywalking-oap
+      - kafka
+    environment:
+      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+        --add-opens java.base/java.util=ALL-UNNAMED
+      - NACOS_SERVER=nacos:8848
+    entrypoint:
+      [
+        "java",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
+        "-Dskywalking.agent.service_name=rinko-log",
+        "-Dskywalking.collector.backend_service=skywalking-oap:11800",
+        "-jar",
+        "/app/app.jar"
+      ]
+    volumes:
+      - ./docker/skywalking-agent/:/app/skywalking-agent/
+
+  rinko-oss:
+    image: rinko-oss:latest
+    container_name: rinko-oss
+    depends_on:
+      - nacos
+      - seata-server
+      - skywalking-oap
+      - kafka
+    environment:
+      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+        --add-opens java.base/java.util=ALL-UNNAMED
+      - NACOS_SERVER=nacos:8848
+    entrypoint:
+      [
+        "java",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
+        "-Dskywalking.agent.service_name=rinko-oss",
+        "-Dskywalking.collector.backend_service=skywalking-oap:11800",
+        "-jar",
+        "/app/app.jar"
+      ]
+    volumes:
+      - ./docker/skywalking-agent/:/app/skywalking-agent/
 
 volumes:
   nacos-data:

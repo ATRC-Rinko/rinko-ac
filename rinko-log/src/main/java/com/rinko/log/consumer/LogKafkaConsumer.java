@@ -1,6 +1,5 @@
 package com.rinko.log.consumer;
 
-import com.rinko.log.dto.LogMessage;
 import com.rinko.log.service.LogIngestionService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -26,12 +25,12 @@ public class LogKafkaConsumer {
             groupId = "rinko-log-consumer",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consumeLogs(String messages) {
-//        if (messages == null || messages.isEmpty()) {
-//            return;
-//        }
-        log.debug("Received {} log messages from Kafka", messages);
-//        logIngestionService.ingestBatch(messages);
+    public void consumeLogs(List<String> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
+        log.error("Received {} log messages from Kafka", messages.size());
+        logIngestionService.ingestBatch(messages);
     }
 
 }

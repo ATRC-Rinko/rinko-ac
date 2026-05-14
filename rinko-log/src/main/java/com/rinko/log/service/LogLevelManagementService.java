@@ -9,8 +9,8 @@ import com.rinko.log.repository.LogLevelConfigMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.bus.BusProperties;
-import org.springframework.cloud.bus.event.RemoteApplicationEvent;
+//import org.springframework.cloud.bus.BusProperties;
+//import org.springframework.cloud.bus.event.RemoteApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ public class LogLevelManagementService {
 
     private final LogLevelConfigMapper logLevelConfigMapper;
     private final ApplicationEventPublisher eventPublisher;
-    private final BusProperties busProperties;
+//    private final BusProperties busProperties;
     private final SnowflakeIdGenerator idGenerator;
 
     /**
@@ -70,7 +70,7 @@ public class LogLevelManagementService {
             logLevelConfigMapper.updateById(config);
         }
 
-        publishEvent(service, loggerName, level);
+//        publishEvent(service, loggerName, level);
 
         log.info("Log level changed: service={}, logger={}, level={}", service, loggerName, level);
         return config;
@@ -91,36 +91,36 @@ public class LogLevelManagementService {
         }
 
         logLevelConfigMapper.deleteById(config.getId());
-        publishEvent(service, loggerName, null);
+//        publishEvent(service, loggerName, null);
         log.info("Log level reset: service={}, logger={}", service, loggerName);
     }
 
-    private void publishEvent(String targetService, String loggerName, String level) {
-        LogLevelChangeEvent event = new LogLevelChangeEvent(
-                this, busProperties.getId(), targetService, loggerName, level);
-        eventPublisher.publishEvent(event);
-    }
+//    private void publishEvent(String targetService, String loggerName, String level) {
+//        LogLevelChangeEvent event = new LogLevelChangeEvent(
+//                this, busProperties.getId(), targetService, loggerName, level);
+//        eventPublisher.publishEvent(event);
+//    }
 
-    /**
-     * 通过 Spring Cloud Bus 发布的日志级别变更事件。
-     */
-    public static class LogLevelChangeEvent extends RemoteApplicationEvent {
-        private final String loggerName;
-        private final String logLevel;
-
-        public LogLevelChangeEvent() {
-            this.loggerName = null;
-            this.logLevel = null;
-        }
-
-        public LogLevelChangeEvent(Object source, String originService,
-                                     String destinationService, String loggerName, String logLevel) {
-            super(source, originService, destinationService);
-            this.loggerName = loggerName;
-            this.logLevel = logLevel;
-        }
-
-        public String getLoggerName() { return loggerName; }
-        public String getLogLevel() { return logLevel; }
-    }
+//    /**
+//     * 通过 Spring Cloud Bus 发布的日志级别变更事件。
+//     */
+//    public static class LogLevelChangeEvent extends RemoteApplicationEvent {
+//        private final String loggerName;
+//        private final String logLevel;
+//
+//        public LogLevelChangeEvent() {
+//            this.loggerName = null;
+//            this.logLevel = null;
+//        }
+//
+//        public LogLevelChangeEvent(Object source, String originService,
+//                                     String destinationService, String loggerName, String logLevel) {
+//            super(source, originService, destinationService);
+//            this.loggerName = loggerName;
+//            this.logLevel = logLevel;
+//        }
+//
+//        public String getLoggerName() { return loggerName; }
+//        public String getLogLevel() { return logLevel; }
+//    }
 }

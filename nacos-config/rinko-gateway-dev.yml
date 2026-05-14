@@ -3,8 +3,6 @@ server:
   port: 10315
 
 spring:
-  kafka:
-    bootstrap-servers: localhost:9092
   cloud:
     gateway:
       server:
@@ -36,7 +34,7 @@ spring:
       datasource:
         ds:
           nacos:
-            server-addr: 127.0.0.1:18848
+            server-addr: nacos:8848
             data-id: sentinel-gateway-rules
             group-id: DEFAULT_GROUP
             data-type: json

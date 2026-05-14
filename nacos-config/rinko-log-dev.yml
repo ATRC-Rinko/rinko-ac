@@ -6,7 +6,7 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/rinko_log?currentSchema=log
+    url: jdbc:postgresql://postgres:5432/rinko_log?currentSchema=log
     username: postgres
     password: rinko
     druid:
@@ -21,27 +21,14 @@ spring:
           slow-sql-millis: 2000
         wall:
           enabled: false
-  bus:
-    enabled: true
-  stream:
-    kafka:
-      binder:
-        brokers: localhost:9092
-    bindings:
-      springCloudBusInput:
-        destination: springCloudBus
-        group: rinko-log
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       database: 0
       password: rinko_redis_2024
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
 # MyBatis-Plus
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -49,12 +36,10 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 rinko:
-  flyway:
-    enabled: false
   log:
     sampling-rate: 1.0
     clickhouse:
-      host: localhost
+      host: clickhouse
       port: 8123
       database: rinko_log
       username: rinko

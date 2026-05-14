@@ -48,9 +48,6 @@
         <!-- Druid -->
         <druid.version>1.2.28</druid.version>
 
-        <!-- Flyway -->
-        <flyway.version>10.21.0</flyway.version>
-
         <!-- R2DBC -->
         <r2dbc-postgresql.version>1.0.6.RELEASE</r2dbc-postgresql.version>
 
@@ -112,18 +109,6 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
-            </dependency>
-
-            <!-- Flyway -->
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-core</artifactId>
-                <version>${flyway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-database-postgresql</artifactId>
-                <version>${flyway.version}</version>
             </dependency>
 
             <!-- R2DBC -->

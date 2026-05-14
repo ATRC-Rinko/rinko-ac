@@ -4,26 +4,6 @@
 # Data ID: application-dev.yml
 # Group: DEFAULT_GROUP
 # =====================================================
-
-# SkyWalking 链路追踪
-# 本地启动添加 JVM 参数: -javaagent:skywalking-agent/skywalking-agent.jar
-# Docker 通过 Dockerfile COPY 并在 ENTRYPOINT 中加载
-skywalking:
-  agent:
-    service_name: ${SW_AGENT_NAME:${spring.application.name}}
-  collector:
-    backend_service: ${SW_AGENT_COLLECTOR_BACKEND_SERVICES:localhost:11800}
-
-# Metrics
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: always
-
 # 日志格式
 logging:
   config: classpath:logback-spring.xml
@@ -37,8 +17,6 @@ spring:
   threads:
     virtual:
       enabled: true
-  kafka:
-    bootstrap-servers: localhost:9092
 # Feign / HTTP
 spring.cloud.openfeign:
   client:
@@ -66,7 +44,7 @@ seata:
   registry:
     type: nacos
     nacos:
-      server-addr: 127.0.0.1:18848
+      server-addr: nacos:8848
       namespace: rinko
       group: anchorage
       application: seata-server

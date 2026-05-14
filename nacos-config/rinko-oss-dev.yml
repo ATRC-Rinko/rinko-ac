@@ -1,32 +1,41 @@
 # rinko-oss 对象存储服务配置
+server:
+  port: 10319
+
 spring:
-  kafka:
-    bootstrap-servers: localhost:9092
   datasource:
-    url: jdbc:postgresql://localhost:5432/rinko_oss
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/rinko_oss?currentSchema=oss
     username: postgres
     password: rinko
-    driver-class-name: org.postgresql.Driver
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
+    druid:
+      initial-size: 20
+      max-active: 100
+      min-idle: 5
+      max-wait: 60000
+      filter:
+        stat:
+          enabled: false
+          log-slow-sql: false
+          slow-sql-millis: 2000
+        wall:
+          enabled: false
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       database: 0
 
 rinko:
-  flyway:
-    enabled: true
   oss:
     storage-type: local
     local:
       base-path: ./data/oss
     s3:
-      endpoint: http://localhost:9000
-      access-key: minioadmin
-      secret-key: minioadmin
+      endpoint: http://rustfs:9000
+      access-key: rustfsadmin
+      secret-key: rustfsadmin
       bucket: rinko-oss
       region: us-east-1
     thumbnail:

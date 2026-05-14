@@ -3,40 +3,19 @@ server:
   port: 10316
 
 spring:
-  kafka:
-    bootstrap-servers: localhost:9092
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/rinko_auth
+    url: r2dbc:postgresql://postgres:5432/rinko_auth
     username: postgres
     password: rinko
     properties:
       currentSchema: auth
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       database: 0
       password: rinko_redis_2024
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: rinko
-    password: anchorage
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-  cloud:
-    bus:
-      enabled: true
-    stream:
-      bindings:
-        springCloudBusInput:
-          destination: springCloudBus
-          group: rinko-auth
-
 rinko:
-  flyway:
-    enabled: true
   auth:
     jwt:
       secret: ${JWT_SECRET:anchorage_rinko}

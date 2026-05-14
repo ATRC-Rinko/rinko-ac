@@ -1,3 +1,2 @@
-com.rinko.infra.flyway.FlywayMigrationInitializer
 com.rinko.infra.web.GlobalExceptionHandler
 com.rinko.infra.web.ReactiveGlobalExceptionHandler
