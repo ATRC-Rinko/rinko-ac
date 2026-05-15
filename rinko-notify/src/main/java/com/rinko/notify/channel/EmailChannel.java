@@ -33,6 +33,7 @@ public class EmailChannel implements NotificationChannel {
                     .set(NotificationHistory::getStatus, "SENT")
                     .set(NotificationHistory::getErrorMessage, null));
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Email send failed: {}", e.getMessage());
             historyMapper.update(null, new LambdaUpdateWrapper<NotificationHistory>()
                     .eq(NotificationHistory::getId, history.getId())

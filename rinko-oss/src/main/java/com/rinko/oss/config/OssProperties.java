@@ -39,8 +39,26 @@ public class OssProperties {
     @Getter
     @Setter
     public static class Thumbnail {
-        private int width = 200;
-        private int height = 200;
+        private List<Resolution> resolutions = List.of(
+                new Resolution("small", 200),
+                new Resolution("medium", 800),
+                new Resolution("large", 1600)
+        );
+
+        @Getter
+        @Setter
+        public static class Resolution {
+            private String label;
+            private int maxWidth;
+
+            public Resolution() {
+            }
+
+            public Resolution(String label, int maxWidth) {
+                this.label = label;
+                this.maxWidth = maxWidth;
+            }
+        }
     }
 
     @Getter

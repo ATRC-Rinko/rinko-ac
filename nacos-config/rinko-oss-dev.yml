@@ -21,11 +21,6 @@ spring:
           slow-sql-millis: 2000
         wall:
           enabled: false
-  data:
-    redis:
-      host: redis
-      port: 6379
-      database: 0
 
 rinko:
   oss:
@@ -39,8 +34,13 @@ rinko:
       bucket: rinko-oss
       region: us-east-1
     thumbnail:
-      width: 200
-      height: 200
+      resolutions:
+        - label: small
+          maxWidth: 200
+        - label: medium
+          maxWidth: 800
+        - label: large
+          maxWidth: 1600
     video:
       resolutions:
         - label: 480p

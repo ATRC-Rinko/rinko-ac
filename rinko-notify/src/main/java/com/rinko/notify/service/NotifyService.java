@@ -8,6 +8,8 @@ import com.rinko.notify.model.entity.NotificationHistory;
 import com.rinko.notify.model.entity.NotificationTemplate;
 import com.rinko.notify.repository.NotificationHistoryMapper;
 import com.rinko.notify.repository.NotificationTemplateMapper;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,21 +17,24 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class NotifyService {
 
     private final NotificationHistoryMapper historyMapper;
     private final NotificationTemplateMapper templateMapper;
     private final RabbitTemplate rabbitTemplate;
-    private final SnowflakeIdGenerator idGenerator = new SnowflakeIdGenerator();
+    private final SnowflakeIdGenerator idGenerator;
 
-    public NotifyService(NotificationHistoryMapper historyMapper, NotificationTemplateMapper templateMapper,
-                           RabbitTemplate rabbitTemplate) {
-        this.historyMapper = historyMapper;
-        this.templateMapper = templateMapper;
-        this.rabbitTemplate = rabbitTemplate;
-    }
 
     public NotificationHistory send(String channel, String templateCode, String recipient, Map<String, String> variables) {
+        NotificationHistory history = coverHistory(channel, templateCode, recipient, variables);
+
+        rabbitTemplate.convertAndSend("notify.queue", history);
+        return history;
+    }
+
+
+    public NotificationHistory coverHistory(String channel, String templateCode, String recipient, Map<String, String> variables) {
         NotificationTemplate template = templateMapper.selectOne(
                 new LambdaQueryWrapper<NotificationTemplate>()
                         .eq(NotificationTemplate::getCode, templateCode));
@@ -48,8 +53,6 @@ public class NotifyService {
         history.setSubject(subject);
         history.setContent(content);
         history.setStatus("PENDING");
-
-        rabbitTemplate.convertAndSend("notify.queue", history);
         return history;
     }
 

@@ -3,7 +3,17 @@ package com.rinko.auth.dto
 data class RegisterRequest(
     val username: String,
     val email: String,
-    val password: String
+    val password: String,
+    val code: String
+)
+
+data class SendCodeRequest(
+    val email: String
+)
+
+data class SendCodeResponse(
+    val message: String,
+    val expiresIn: Int = 300
 )
 
 data class LoginRequest(

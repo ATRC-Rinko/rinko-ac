@@ -1,22 +1,33 @@
 # rinko-scheduler 调度服务配置
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/rinko_scheduler
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/rinko_scheduler?currentSchema=scheduler
     username: postgres
     password: rinko
-    driver-class-name: org.postgresql.Driver
+    druid:
+      initial-size: 20
+      max-active: 100
+      min-idle: 5
+      max-wait: 60000
+      filter:
+        stat:
+          enabled: false
+          log-slow-sql: false
+          slow-sql-millis: 2000
+        wall:
+          enabled: false
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       database: 0
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: rinko
     password: anchorage
-  kafka:
-    bootstrap-servers: localhost:9092
 
 rinko:
   scheduler:

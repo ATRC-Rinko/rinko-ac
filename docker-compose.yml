@@ -337,6 +337,66 @@ services:
     volumes:
       - ./docker/skywalking-agent/:/app/skywalking-agent/
 
+  rinko-notify:
+    image: rinko-notify:latest
+    container_name: rinko-notify
+    depends_on:
+      - nacos
+      - seata-server
+      - skywalking-oap
+      - kafka
+    environment:
+      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+        --add-opens java.base/java.util=ALL-UNNAMED
+      - NACOS_SERVER=nacos:8848
+    entrypoint:
+      [
+        "java",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
+        "-Dskywalking.agent.service_name=rinko-notify",
+        "-Dskywalking.collector.backend_service=skywalking-oap:11800",
+        "-jar",
+        "/app/app.jar"
+      ]
+    volumes:
+      - ./docker/skywalking-agent/:/app/skywalking-agent/
+
+  rinko-scheduler:
+    image: rinko-scheduler:latest
+    container_name: rinko-scheduler
+    depends_on:
+      - nacos
+      - seata-server
+      - skywalking-oap
+      - kafka
+    environment:
+      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
+        --add-opens java.base/java.util=ALL-UNNAMED
+      - NACOS_SERVER=nacos:8848
+    entrypoint:
+      [
+        "java",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
+        "-Dskywalking.agent.service_name=rinko-scheduler",
+        "-Dskywalking.collector.backend_service=skywalking-oap:11800",
+        "-jar",
+        "/app/app.jar"
+      ]
+    volumes:
+      - ./docker/skywalking-agent/:/app/skywalking-agent/
+
 volumes:
   nacos-data:
   postgres-data:

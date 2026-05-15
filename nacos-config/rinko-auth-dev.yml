@@ -15,6 +15,11 @@ spring:
       port: 6379
       database: 0
       password: rinko_redis_2024
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: rinko
+    password: anchorage
 rinko:
   auth:
     jwt:

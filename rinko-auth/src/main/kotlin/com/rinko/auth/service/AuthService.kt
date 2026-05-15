@@ -24,7 +24,8 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
     private val tokenBlacklistService: TokenBlacklistService,
-    private val snowflakeIdGenerator: SnowflakeIdGenerator
+    private val snowflakeIdGenerator: SnowflakeIdGenerator,
+    private val verificationCodeService: VerificationCodeService
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(AuthService::class.java)
@@ -44,16 +45,25 @@ class AuthService(
                         if (emailExists) {
                             return@flatMap Mono.error<AuthResponse>(ValidationException("Email already exists"))
                         }
-                        val encodedPw = passwordEncoder.encode(request.password)!!
-                        val user = User(
-                            id = snowflakeIdGenerator.nextId(),
-                            username = request.username,
-                            email = request.email,
-                            passwordHash = encodedPw,
-                            status = UserStatus.ACTIVE
-                        ).apply { isNewRecord = true }
-                        userRepository.save(user)
-                            .flatMap { saved -> createTokenResponse(saved) }
+                        verificationCodeService.verifyCode(request.email, request.code)
+                            .flatMap { valid ->
+                                if (!valid) {
+                                    return@flatMap Mono.error<AuthResponse>(ValidationException("Invalid verification code"))
+                                }
+                                val encodedPw = passwordEncoder.encode(request.password)!!
+                                val user = User(
+                                    id = snowflakeIdGenerator.nextId(),
+                                    username = request.username,
+                                    email = request.email,
+                                    passwordHash = encodedPw,
+                                    status = UserStatus.ACTIVE
+                                ).apply { isNewRecord = true }
+                                userRepository.save(user)
+                                    .flatMap { saved ->
+                                        verificationCodeService.deleteCode(request.email)
+                                            .then(createTokenResponse(saved))
+                                    }
+                            }
                     }
             }
     }

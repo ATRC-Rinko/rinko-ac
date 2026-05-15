@@ -2,6 +2,7 @@ package com.rinko.auth.controller
 
 import com.rinko.auth.dto.*
 import com.rinko.auth.service.AuthService
+import com.rinko.auth.service.VerificationCodeService
 import com.rinko.infra.dto.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -15,8 +16,16 @@ import reactor.core.publisher.Mono
 @RequestMapping("/api/v1/auth")
 @Tag(name = "Authentication", description = "用户认证接口")
 class AuthController(
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val verificationCodeService: VerificationCodeService
 ) {
+
+    @PostMapping("/send-code")
+    @Operation(summary = "发送邮箱验证码")
+    fun sendCode(@RequestBody request: SendCodeRequest): Mono<ApiResponse<SendCodeResponse>> {
+        return verificationCodeService.sendCode(request.email)
+            .map { ApiResponse.success(it) }
+    }
 
     @PostMapping("/register")
     @Operation(summary = "用户注册")

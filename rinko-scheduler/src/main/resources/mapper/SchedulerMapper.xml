@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.rinko.scheduler.repository.SchedulerJobMapper">
-    <resultMap id="jobMap" type="com.rinko.scheduler.entity.SchedulerJob">
+    <resultMap id="jobMap" type="com.rinko.scheduler.model.entity.SchedulerJob">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="type" column="type"/>

@@ -31,20 +31,32 @@ public class ImageProcessor {
             BufferedImage original = ImageIO.read(originalStream);
             if (original == null) return;
 
-            int w = ossProperties.getThumbnail().getWidth();
-            int h = ossProperties.getThumbnail().getHeight();
-            BufferedImage thumb = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = thumb.createGraphics();
-            g.drawImage(original.getScaledInstance(w, h, Image.SCALE_SMOOTH), 0, 0, null);
-            g.dispose();
+            int origW = original.getWidth();
+            int origH = original.getHeight();
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(thumb, "jpg", baos);
-            byte[] thumbBytes = baos.toByteArray();
+            for (OssProperties.Thumbnail.Resolution res : ossProperties.getThumbnail().getResolutions()) {
+                // 保持宽高比：按长边计算缩放比例
+                double scale = (double) res.getMaxWidth() / Math.max(origW, origH);
+                // 不放大（原图小于目标分辨率时保持原尺寸）
+                scale = Math.min(scale, 1.0);
 
-            String thumbKey = baseKey + "/thumb.jpg";
-            storageService.store(new ByteArrayInputStream(thumbBytes), thumbKey, thumbBytes.length, "image/jpeg");
-            log.info("Generated thumbnail: {}", thumbKey);
+                int newW = (int) (origW * scale);
+                int newH = (int) (origH * scale);
+
+                BufferedImage thumb = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = thumb.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.drawImage(original, 0, 0, newW, newH, null);
+                g.dispose();
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(thumb, "jpg", baos);
+                byte[] thumbBytes = baos.toByteArray();
+
+                String thumbKey = baseKey + "/" + res.getLabel() + ".jpg";
+                storageService.store(new ByteArrayInputStream(thumbBytes), thumbKey, thumbBytes.length, "image/jpeg");
+                log.info("Generated thumbnail {} ({}x{})", thumbKey, newW, newH);
+            }
         } catch (IOException e) {
             log.warn("Failed to generate thumbnail for {}: {}", baseKey, e.getMessage());
         }

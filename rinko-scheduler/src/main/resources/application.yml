@@ -12,13 +12,13 @@ spring:
         namespace: ${NACOS_NAMESPACE:rinko}
         group: anchorage
         username: nacos
-        password: isincere
+        password: isincere.
       config:
         server-addr: ${NACOS_SERVER:127.0.0.1:18848}
         namespace: ${NACOS_NAMESPACE:rinko}
         group: anchorage
         username: nacos
-        password: isincere
+        password: isincere.
         file-extension: yml
   quartz:
     job-store-type: jdbc

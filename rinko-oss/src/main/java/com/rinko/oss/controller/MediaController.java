@@ -26,10 +26,12 @@ public class MediaController {
     }
 
     @GetMapping("/thumbnail/{fileId}")
-    @Operation(summary = "获取缩略图")
-    public ResponseEntity<Resource> thumbnail(@PathVariable long fileId) {
+    @Operation(summary = "获取缩略图（支持 small/medium/large 分辨率）")
+    public ResponseEntity<Resource> thumbnail(@PathVariable long fileId,
+                                              @RequestParam(defaultValue = "small") String label) {
         var meta = fileService.getMetadata(fileId);
-        String thumbKey = meta.getStoragePath().replace("/" + meta.getOriginalName(), "/thumb.jpg");
+        String baseKey = meta.getStoragePath().replace("/" + meta.getOriginalName(), "");
+        String thumbKey = baseKey + "/" + label + ".jpg";
         try {
             InputStream stream = fileService.downloadByKey(thumbKey);
             return ResponseEntity.ok()

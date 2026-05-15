@@ -6,5 +6,5 @@ public interface NotificationChannel {
 
     String getType();
 
-    void send(NotificationHistory history);
+    void send(NotificationHistory message);
 }
