@@ -1,6 +1,6 @@
 package com.rinko.scheduler.executor;
 
-import com.rinko.scheduler.entity.SchedulerJob;
+import com.rinko.scheduler.model.entity.SchedulerJob;
 
 public interface JobExecutor {
     String execute(SchedulerJob job);

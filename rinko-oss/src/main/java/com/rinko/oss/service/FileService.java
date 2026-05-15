@@ -7,13 +7,14 @@ import com.rinko.infra.exception.InternalException;
 import com.rinko.infra.exception.NotFoundException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.oss.config.OssProperties;
-import com.rinko.oss.entity.FileMetadata;
-import com.rinko.oss.entity.FileVersion;
-import com.rinko.oss.entity.VideoResolutionEntity;
+import com.rinko.oss.model.entity.FileMetadata;
+import com.rinko.oss.model.entity.FileVersion;
+import com.rinko.oss.model.entity.VideoResolutionEntity;
 import com.rinko.oss.media.MediaProcessingService;
 import com.rinko.oss.repository.FileMetadataMapper;
 import com.rinko.oss.repository.FileVersionRepository;
 import com.rinko.oss.repository.VideoResolutionRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,11 +26,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class FileService {
 
     private static final Logger log = LoggerFactory.getLogger(FileService.class);
@@ -39,20 +40,8 @@ public class FileService {
     private final VideoResolutionRepository videoResolutionRepository;
     private final MediaProcessingService mediaProcessingService;
     private final OssProperties ossProperties;
-    private final SnowflakeIdGenerator idGenerator = new SnowflakeIdGenerator();
+    private final SnowflakeIdGenerator idGenerator;
     private final Map<String, MultipartSession> multipartSessions = new ConcurrentHashMap<>();
-
-    public FileService(StorageService storageService, FileMetadataMapper fileMetadataMapper,
-                        FileVersionRepository fileVersionRepository,
-                        VideoResolutionRepository videoResolutionRepository,
-                        MediaProcessingService mediaProcessingService, OssProperties ossProperties) {
-        this.storageService = storageService;
-        this.fileMetadataMapper = fileMetadataMapper;
-        this.fileVersionRepository = fileVersionRepository;
-        this.videoResolutionRepository = videoResolutionRepository;
-        this.mediaProcessingService = mediaProcessingService;
-        this.ossProperties = ossProperties;
-    }
 
     @Transactional
     public FileMetadata upload(InputStream inputStream, String originalName, String contentType, Long parentId) throws IOException {
@@ -92,7 +81,9 @@ public class FileService {
 
     public FileMetadata getMetadata(long fileId) {
         FileMetadata meta = fileMetadataMapper.selectById(fileId);
-        if (meta == null) throw new NotFoundException("File not found: " + fileId);
+        if (meta == null) {
+            throw new NotFoundException("File not found: " + fileId);
+        }
         return meta;
     }
 
@@ -152,7 +143,9 @@ public class FileService {
                 new LambdaQueryWrapper<FileVersion>()
                         .eq(FileVersion::getFileId, fileId)
                         .eq(FileVersion::getVersion, targetVersion));
-        if (target == null) throw new NotFoundException("Version not found: " + targetVersion);
+        if (target == null) {
+            throw new NotFoundException("Version not found: " + targetVersion);
+        }
         meta.setStoragePath(target.getStoragePath());
         meta.setCurrentVersion(targetVersion);
         meta.setSha256(target.getSha256());
@@ -184,7 +177,9 @@ public class FileService {
 
     public StorageService.PartETag uploadPart(String uploadId, int partNumber, InputStream data, long size) {
         MultipartSession session = multipartSessions.get(uploadId);
-        if (session == null) throw new NotFoundException("Upload session not found: " + uploadId);
+        if (session == null) {
+            throw new NotFoundException("Upload session not found: " + uploadId);
+        }
         return new StorageService.PartETag(partNumber,
                 storageService.uploadPart(session.key, uploadId, partNumber, data, size));
     }
@@ -192,7 +187,9 @@ public class FileService {
     @Transactional
     public FileMetadata completeMultipartUpload(String uploadId, List<StorageService.PartETag> parts) {
         MultipartSession session = multipartSessions.remove(uploadId);
-        if (session == null) throw new NotFoundException("Upload session not found: " + uploadId);
+        if (session == null) {
+            throw new NotFoundException("Upload session not found: " + uploadId);
+        }
         storageService.completeMultipartUpload(session.key, uploadId, parts);
 
         FileMetadata meta = new FileMetadata();
@@ -212,7 +209,9 @@ public class FileService {
 
     public void abortMultipartUpload(String uploadId) {
         MultipartSession session = multipartSessions.remove(uploadId);
-        if (session == null) return;
+        if (session == null) {
+            return;
+        }
         storageService.abortMultipartUpload(session.key, uploadId);
     }
 

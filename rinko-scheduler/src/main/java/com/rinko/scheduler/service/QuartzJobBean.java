@@ -1,8 +1,8 @@
 package com.rinko.scheduler.service;
 
-import com.rinko.scheduler.entity.SchedulerDependency;
-import com.rinko.scheduler.entity.SchedulerExecution;
-import com.rinko.scheduler.entity.SchedulerJob;
+import com.rinko.scheduler.model.entity.SchedulerDependency;
+import com.rinko.scheduler.model.entity.SchedulerExecution;
+import com.rinko.scheduler.model.entity.SchedulerJob;
 import com.rinko.scheduler.executor.JobExecutor;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

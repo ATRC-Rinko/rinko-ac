@@ -2,12 +2,20 @@ package com.rinko.oss.controller;
 
 import com.rinko.infra.dto.ApiResponse;
 import com.rinko.infra.dto.PageResponse;
-import com.rinko.oss.entity.FileMetadata;
+import com.rinko.oss.model.dto.CompleteMultipartUploadRequest;
+import com.rinko.oss.model.dto.CreateDirectoryRequest;
+import com.rinko.oss.model.dto.InitMultipartUploadRequest;
+import com.rinko.oss.model.vo.MultipartInitVO;
+import com.rinko.oss.model.vo.PartUploadVO;
+import com.rinko.oss.model.vo.PresignUrlVO;
+import com.rinko.oss.model.entity.FileMetadata;
+import com.rinko.oss.model.vo.FileMetadataVO;
 import com.rinko.oss.service.FileService;
 import com.rinko.oss.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -19,29 +27,25 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/oss")
+@RequiredArgsConstructor
 @Tag(name = "File Management", description = "文件管理接口")
 public class FileController {
 
     private final FileService fileService;
 
-    public FileController(FileService fileService) {
-        this.fileService = fileService;
-    }
-
     @PostMapping("/upload")
     @Operation(summary = "上传文件")
-    public ApiResponse<FileMetadata> upload(
+    public ApiResponse<FileMetadataVO> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "parentId", required = false) Long parentId,
             HttpServletResponse response) throws IOException {
-        FileMetadata meta = fileService.upload(file.getInputStream(),
+        var meta = fileService.upload(file.getInputStream(),
                 file.getOriginalFilename(), file.getContentType(), parentId);
         response.setStatus(201);
-        return ApiResponse.success(meta);
+        return ApiResponse.success(FileMetadataVO.from(meta));
     }
 
     @GetMapping("/download/{fileId}")
@@ -57,20 +61,23 @@ public class FileController {
 
     @GetMapping("/presign/{fileId}")
     @Operation(summary = "生成预签名下载URL")
-    public ApiResponse<Map<String, String>> presignUrl(
+    public ApiResponse<PresignUrlVO> presignUrl(
             @PathVariable long fileId,
             @RequestParam(defaultValue = "600") int expires) {
-        String url = fileService.presignUrl(fileId, expires);
-        return ApiResponse.success(Map.of("url", url));
+        return ApiResponse.success(new PresignUrlVO(fileService.presignUrl(fileId, expires)));
     }
 
     @GetMapping("/files")
     @Operation(summary = "分页列出文件")
-    public ApiResponse<PageResponse<FileMetadata>> listFiles(
+    public ApiResponse<PageResponse<FileMetadataVO>> listFiles(
             @RequestParam(required = false) Long parentId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(fileService.listFiles(parentId, page, size));
+        var pageResult = fileService.listFiles(parentId, page, size);
+        var voContent = pageResult.content().stream()
+                .map(FileMetadataVO::from)
+                .toList();
+        return ApiResponse.success(new PageResponse<>(voContent, pageResult.totalElements(), pageResult.page(), pageResult.size()));
     }
 
     @DeleteMapping("/files/{fileId}")
@@ -83,11 +90,9 @@ public class FileController {
 
     @PostMapping("/directories")
     @Operation(summary = "创建目录")
-    public ApiResponse<FileMetadata> createDirectory(@RequestBody Map<String, String> body, HttpServletResponse response) {
-        String name = body.get("name");
-        Long parentId = body.containsKey("parentId") ? Long.parseLong(body.get("parentId")) : null;
+    public ApiResponse<FileMetadataVO> createDirectory(@RequestBody CreateDirectoryRequest req, HttpServletResponse response) {
         response.setStatus(201);
-        return ApiResponse.success(fileService.createDirectory(name, parentId));
+        return ApiResponse.success(FileMetadataVO.from(fileService.createDirectory(req.name(), req.parentId())));
     }
 
     @GetMapping("/download/by-key")
@@ -102,39 +107,34 @@ public class FileController {
 
     @PostMapping("/upload/multipart/init")
     @Operation(summary = "初始化分片上传")
-    public ApiResponse<Map<String, String>> initMultipartUpload(@RequestBody Map<String, String> body) {
-        String originalName = body.get("originalName");
-        String contentType = body.getOrDefault("contentType", "application/octet-stream");
-        Long parentId = body.containsKey("parentId") ? Long.parseLong(body.get("parentId")) : null;
-        FileService.MultipartSession session = fileService.initiateMultipartUpload(originalName, contentType, parentId);
-        return ApiResponse.success(Map.of("uploadId", session.uploadId(), "fileId", String.valueOf(session.fileId())));
+    public ApiResponse<MultipartInitVO> initMultipartUpload(@RequestBody InitMultipartUploadRequest req) {
+        FileService.MultipartSession session = fileService.initiateMultipartUpload(
+                req.originalName(),
+                req.contentType() != null ? req.contentType() : "application/octet-stream",
+                req.parentId());
+        return ApiResponse.success(new MultipartInitVO(session.uploadId(), String.valueOf(session.fileId())));
     }
 
     @PostMapping("/upload/multipart/part")
     @Operation(summary = "上传分片")
-    public ApiResponse<Map<String, String>> uploadPart(
+    public ApiResponse<PartUploadVO> uploadPart(
             @RequestParam String uploadId,
             @RequestParam int partNumber,
             @RequestParam("part") MultipartFile part) throws IOException {
         StorageService.PartETag etag = fileService.uploadPart(uploadId, partNumber,
                 part.getInputStream(), part.getSize());
-        return ApiResponse.success(Map.of("partNumber", String.valueOf(etag.partNumber()), "etag", etag.etag()));
+        return ApiResponse.success(new PartUploadVO(String.valueOf(etag.partNumber()), etag.etag()));
     }
 
     @PostMapping("/upload/multipart/complete")
     @Operation(summary = "完成分片上传")
-    public ApiResponse<FileMetadata> completeMultipartUpload(@RequestBody Map<String, Object> body, HttpServletResponse response) {
-        String uploadId = (String) body.get("uploadId");
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> partsList = (List<Map<String, Object>>) body.get("parts");
-        List<StorageService.PartETag> parts = partsList.stream()
-                .map(p -> new StorageService.PartETag(
-                        ((Number) p.get("partNumber")).intValue(),
-                        (String) p.get("etag")))
+    public ApiResponse<FileMetadataVO> completeMultipartUpload(@RequestBody CompleteMultipartUploadRequest req, HttpServletResponse response) {
+        List<StorageService.PartETag> parts = req.parts().stream()
+                .map(p -> new StorageService.PartETag(p.partNumber(), p.etag()))
                 .toList();
-        FileMetadata meta = fileService.completeMultipartUpload(uploadId, parts);
+        var meta = fileService.completeMultipartUpload(req.uploadId(), parts);
         response.setStatus(201);
-        return ApiResponse.success(meta);
+        return ApiResponse.success(FileMetadataVO.from(meta));
     }
 
     @DeleteMapping("/upload/multipart/{uploadId}")
@@ -142,6 +142,6 @@ public class FileController {
     public ApiResponse<Void> abortMultipartUpload(@PathVariable String uploadId, HttpServletResponse response) {
         fileService.abortMultipartUpload(uploadId);
         response.setStatus(204);
-        return ApiResponse.success(null);
+        return ApiResponse.success();
     }
 }

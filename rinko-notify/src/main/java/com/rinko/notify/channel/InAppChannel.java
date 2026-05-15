@@ -1,6 +1,6 @@
 package com.rinko.notify.channel;
 
-import com.rinko.notify.entity.NotificationHistory;
+import com.rinko.notify.model.entity.NotificationHistory;
 import com.rinko.notify.repository.NotificationHistoryMapper;
 import org.springframework.stereotype.Component;
 

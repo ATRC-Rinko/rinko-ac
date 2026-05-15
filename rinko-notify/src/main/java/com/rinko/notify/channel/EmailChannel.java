@@ -1,7 +1,7 @@
 package com.rinko.notify.channel;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.rinko.notify.entity.NotificationHistory;
+import com.rinko.notify.model.entity.NotificationHistory;
 import com.rinko.notify.repository.NotificationHistoryMapper;
 import com.rinko.notify.provider.EmailProvider;
 import org.slf4j.Logger;

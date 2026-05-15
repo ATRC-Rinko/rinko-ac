@@ -20,32 +20,35 @@ class ReactiveGlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException::class)
     fun handleValidation(ex: ValidationException, exchange: ServerWebExchange): Mono<ApiResponse<*>> {
-        log.debug("Validation error: {}", ex.errorMessage)
+        log.error("Validation error", ex)
         exchange.response.statusCode = HttpStatus.valueOf(400)
         return Mono.just(ApiResponse.error<String>(400, ex.errorMessage))
     }
 
     @ExceptionHandler(UnauthorizedException::class)
     fun handleUnauthorized(ex: UnauthorizedException, exchange: ServerWebExchange): Mono<ApiResponse<*>> {
+        log.error("Unauthorized error", ex)
         exchange.response.statusCode = HttpStatus.valueOf(401)
         return Mono.just(ApiResponse.error<String>(401, ex.errorMessage))
     }
 
     @ExceptionHandler(ForbiddenException::class)
     fun handleForbidden(ex: ForbiddenException, exchange: ServerWebExchange): Mono<ApiResponse<*>> {
+        log.error("Forbidden error", ex)
         exchange.response.statusCode = HttpStatus.valueOf(403)
         return Mono.just(ApiResponse.error<String>(403, ex.errorMessage))
     }
 
     @ExceptionHandler(NotFoundException::class)
     fun handleNotFound(ex: NotFoundException, exchange: ServerWebExchange): Mono<ApiResponse<*>> {
+        log.error("Not Found error", ex)
         exchange.response.statusCode = HttpStatus.valueOf(404)
         return Mono.just(ApiResponse.error<String>(404, ex.errorMessage))
     }
 
     @ExceptionHandler(InternalException::class)
     fun handleInternal(ex: InternalException, exchange: ServerWebExchange): Mono<ApiResponse<*>> {
-        log.error("Internal error: {}", ex.errorMessage, ex)
+        log.error("Internal error", ex)
         exchange.response.statusCode = HttpStatus.valueOf(500)
         return Mono.just(ApiResponse.error<String>(500, ex.errorMessage))
     }

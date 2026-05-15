@@ -12,4 +12,9 @@ CREATE TABLE IF NOT EXISTS log_level_configs (
 );
 
 COMMENT ON TABLE log_level_configs IS '动态日志级别配置表';
-COMMENT ON COLUMN log_level_configs.log_level IS 'TRACE | DEBUG | INFO | WARN | ERROR';
+COMMENT ON COLUMN log_level_configs.id IS '主键ID';
+COMMENT ON COLUMN log_level_configs.service_name IS '服务名称';
+COMMENT ON COLUMN log_level_configs.logger_name IS '日志记录器名称';
+COMMENT ON COLUMN log_level_configs.log_level IS '日志级别：TRACE | DEBUG | INFO | WARN | ERROR';
+COMMENT ON COLUMN log_level_configs.created_at IS '创建时间';
+COMMENT ON COLUMN log_level_configs.updated_at IS '更新时间';

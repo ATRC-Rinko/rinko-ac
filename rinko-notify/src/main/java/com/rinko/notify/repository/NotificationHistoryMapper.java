@@ -1,7 +1,7 @@
 package com.rinko.notify.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.rinko.notify.entity.NotificationHistory;
+import com.rinko.notify.model.entity.NotificationHistory;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

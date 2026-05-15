@@ -17,6 +17,8 @@ spring:
   threads:
     virtual:
       enabled: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
 # Feign / HTTP
 spring.cloud.openfeign:
   client:

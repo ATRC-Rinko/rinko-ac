@@ -1,7 +1,7 @@
 package com.rinko.oss.controller;
 
 import com.rinko.infra.dto.ApiResponse;
-import com.rinko.oss.entity.VideoResolutionEntity;
+import com.rinko.oss.model.vo.VideoResolutionVO;
 import com.rinko.oss.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,8 +42,10 @@ public class MediaController {
 
     @GetMapping("/video/{fileId}/resolutions")
     @Operation(summary = "查询视频分辨率转码状态")
-    public ApiResponse<List<VideoResolutionEntity>> listResolutions(@PathVariable long fileId) {
-        return ApiResponse.success(fileService.listVideoResolutions(fileId));
+    public ApiResponse<List<VideoResolutionVO>> listResolutions(@PathVariable long fileId) {
+        return ApiResponse.success(fileService.listVideoResolutions(fileId).stream()
+                .map(VideoResolutionVO::from)
+                .toList());
     }
 
     @GetMapping("/video/{fileId}/stream/{resolution}")

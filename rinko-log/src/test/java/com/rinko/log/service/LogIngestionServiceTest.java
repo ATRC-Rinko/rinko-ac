@@ -3,6 +3,7 @@ package com.rinko.log.service;
 import com.rinko.log.config.LogProperties;
 import com.rinko.log.dto.LogMessage;
 import com.rinko.log.repository.ClickHouseLogRepository;
+import com.rinko.log.repository.LogLevelConfigMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,12 +21,13 @@ class LogIngestionServiceTest {
 
     private LogProperties logProperties;
     private LogIngestionService service;
+    private LogLevelConfigMapper logLevelConfigMapper;
 
     @BeforeEach
     void setUp() {
         logProperties = new LogProperties();
         logProperties.setSamplingRate(1.0);
-        service = new LogIngestionService(clickHouseLogRepository, logProperties);
+        service = new LogIngestionService(clickHouseLogRepository, logProperties, logLevelConfigMapper);
     }
 
     @Test

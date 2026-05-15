@@ -77,6 +77,29 @@ The sampling rate SHALL be a double value between 0.0 and 1.0, default 1.0 (100%
 
 Sampling SHALL only apply to `INFO`, `DEBUG`, and `TRACE` level logs. `ERROR` and `WARN` level logs SHALL always be retained regardless of sampling rate.
 
+In addition to sampling, the system SHALL apply level threshold filtering via `log_level_configs`:
+- Query `log_level_configs` for a rule matching the log's `serviceName` and `className`
+- Compare the log's level ordinal against the configured threshold level ordinal
+- Drop the log if its level is below the configured threshold
+- Always retain ERROR and WARN level logs regardless of threshold
+- Cache the configuration map and refresh every 30 seconds
+
+#### Scenario: Log filtered by level threshold
+
+- **WHEN** a DEBUG level log arrives from service `rinko-auth` with className `com.rinko.auth`
+- **AND** `log_level_configs` has a rule `(rinko-auth, com.rinko.auth, WARN)`
+- **THEN** the log SHALL be dropped (DEBUG < WARN)
+
+#### Scenario: Log passes level threshold
+
+- **WHEN** an ERROR level log arrives and the configured threshold is WARN
+- **THEN** the log SHALL be retained (ERROR >= WARN)
+
+#### Scenario: No level rule configured
+
+- **WHEN** a DEBUG log arrives and no rule exists for its serviceName+className
+- **THEN** the log SHALL be retained (no rule = no filtering)
+
 #### Scenario: Sampling rate at 50%
 
 - **WHEN** `rinko.log.sampling-rate=0.5`

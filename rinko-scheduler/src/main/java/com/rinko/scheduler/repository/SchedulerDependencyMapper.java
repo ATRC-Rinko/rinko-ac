@@ -1,7 +1,7 @@
 package com.rinko.scheduler.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.rinko.scheduler.entity.SchedulerDependency;
+import com.rinko.scheduler.model.entity.SchedulerDependency;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

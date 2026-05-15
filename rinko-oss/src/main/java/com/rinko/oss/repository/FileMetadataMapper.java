@@ -1,7 +1,7 @@
 package com.rinko.oss.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.rinko.oss.entity.FileMetadata;
+import com.rinko.oss.model.entity.FileMetadata;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

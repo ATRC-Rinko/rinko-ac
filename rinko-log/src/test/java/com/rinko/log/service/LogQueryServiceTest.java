@@ -1,7 +1,7 @@
 package com.rinko.log.service;
 
 import com.rinko.infra.dto.PageResponse;
-import com.rinko.log.entity.LogEntry;
+import com.rinko.log.model.entity.LogEntry;
 import com.rinko.log.repository.ClickHouseLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

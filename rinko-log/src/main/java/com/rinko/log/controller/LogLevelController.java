@@ -1,6 +1,7 @@
 package com.rinko.log.controller;
 
-import com.rinko.log.entity.LogLevelConfig;
+import com.rinko.log.model.dto.SetLogLevelRequest;
+import com.rinko.log.model.vo.LogLevelConfigVO;
 import com.rinko.log.service.LogLevelManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * 动态日志级别管理 API。
@@ -23,17 +24,16 @@ public class LogLevelController {
 
     @GetMapping("/levels")
     @Operation(summary = "获取所有日志级别配置")
-    public Iterable<LogLevelConfig> getLogLevels() {
-        return logLevelManagementService.getAllConfigs();
+    public List<LogLevelConfigVO> getLogLevels() {
+        return logLevelManagementService.getAllConfigs().stream()
+                .map(LogLevelConfigVO::from)
+                .toList();
     }
 
     @PutMapping("/levels")
     @Operation(summary = "修改日志级别")
-    public LogLevelConfig setLogLevel(@RequestBody Map<String, String> body) {
-        String service = body.get("service");
-        String logger = body.get("logger");
-        String level = body.get("level");
-        return logLevelManagementService.setLogLevel(service, logger, level);
+    public LogLevelConfigVO setLogLevel(@RequestBody SetLogLevelRequest req) {
+        return LogLevelConfigVO.from(logLevelManagementService.setLogLevel(req.service(), req.logger(), req.level()));
     }
 
     @DeleteMapping("/levels/{service}/{logger}")

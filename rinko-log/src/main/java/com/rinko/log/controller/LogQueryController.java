@@ -1,7 +1,7 @@
 package com.rinko.log.controller;
 
 import com.rinko.infra.dto.PageResponse;
-import com.rinko.log.entity.LogEntry;
+import com.rinko.log.model.vo.LogEntryVO;
 import com.rinko.log.service.LogQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +22,7 @@ public class LogQueryController {
 
     @GetMapping
     @Operation(summary = "查询日志")
-    public PageResponse<LogEntry> queryLogs(
+    public PageResponse<LogEntryVO> queryLogs(
             @RequestParam String startTime,
             @RequestParam String endTime,
             @RequestParam(required = false) String level,
@@ -31,6 +31,10 @@ public class LogQueryController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return logQueryService.queryLogs(startTime, endTime, level, service, traceId, keyword, page, size);
+        var pageResult = logQueryService.queryLogs(startTime, endTime, level, service, traceId, keyword, page, size);
+        var voContent = pageResult.content().stream()
+                .map(LogEntryVO::from)
+                .toList();
+        return new PageResponse<>(voContent, pageResult.totalElements(), pageResult.page(), pageResult.size());
     }
 }

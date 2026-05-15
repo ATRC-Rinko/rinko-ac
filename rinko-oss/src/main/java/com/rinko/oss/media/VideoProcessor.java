@@ -2,7 +2,7 @@ package com.rinko.oss.media;
 
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.oss.config.OssProperties;
-import com.rinko.oss.entity.VideoResolutionEntity;
+import com.rinko.oss.model.entity.VideoResolutionEntity;
 import com.rinko.oss.repository.VideoResolutionRepository;
 import com.rinko.oss.service.StorageService;
 import org.slf4j.Logger;

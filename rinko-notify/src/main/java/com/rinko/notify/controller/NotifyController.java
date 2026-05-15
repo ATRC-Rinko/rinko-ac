@@ -1,15 +1,18 @@
 package com.rinko.notify.controller;
 
 import com.rinko.infra.dto.ApiResponse;
-import com.rinko.notify.entity.NotificationHistory;
+import com.rinko.notify.model.dto.SendBatchRequest;
+import com.rinko.notify.model.vo.SendBatchVo;
+import com.rinko.notify.model.dto.SendNotificationRequest;
+import com.rinko.notify.model.vo.NotificationHistoryVO;
 import com.rinko.notify.push.NotificationPushService;
 import com.rinko.notify.service.NotifyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,34 +30,26 @@ public class NotifyController {
 
     @PostMapping("/send")
     @Operation(summary = "发送通知")
-    public ApiResponse<NotificationHistory> send(@RequestBody Map<String, Object> body, HttpServletResponse response) {
-        String channel = (String) body.get("channel");
-        String templateCode = (String) body.get("templateCode");
-        String recipient = (String) body.get("recipient");
-        @SuppressWarnings("unchecked")
-        Map<String, String> variables = (Map<String, String>) body.getOrDefault("variables", Map.of());
-        NotificationHistory history = notifyService.send(channel, templateCode, recipient, variables);
+    public ApiResponse<NotificationHistoryVO> send(@RequestBody SendNotificationRequest req, HttpServletResponse response) {
+        Map<String, String> variables = req.variables() != null ? req.variables() : Map.of();
+        var history = notifyService.send(req.channel(), req.templateCode(), req.recipient(), variables);
         response.setStatus(202);
-        return ApiResponse.success(history);
+        return ApiResponse.success(NotificationHistoryVO.from(history));
     }
 
     @PostMapping("/send-batch")
     @Operation(summary = "批量发送通知")
-    public ApiResponse<Map<String, Object>> sendBatch(@RequestBody Map<String, Object> body, HttpServletResponse response) {
-        String channel = (String) body.get("channel");
-        String templateCode = (String) body.get("templateCode");
-        @SuppressWarnings("unchecked")
-        List<String> recipients = (List<String>) body.get("recipients");
-        @SuppressWarnings("unchecked")
-        Map<String, String> variables = (Map<String, String>) body.getOrDefault("variables", Map.of());
-        Map<String, Object> result = notifyService.sendBatch(channel, templateCode, recipients, variables);
+    public ApiResponse<SendBatchVo> sendBatch(@RequestBody SendBatchRequest req, HttpServletResponse response) {
+        Map<String, String> variables = req.variables() != null ? req.variables() : Map.of();
+        var result = notifyService.sendBatch(req.channel(), req.templateCode(), req.recipients(), variables);
         response.setStatus(202);
-        return ApiResponse.success(result);
+        return ApiResponse.success(new SendBatchVo((int) result.get("count"),
+                (java.util.List<Long>) result.get("notificationIds")));
     }
 
     @GetMapping("/stream")
     @Operation(summary = "SSE 实时通知流")
-    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter stream(@RequestParam String userId) {
+    public SseEmitter stream(@RequestParam String userId) {
         return pushService.createSseEmitter(userId);
     }
 }

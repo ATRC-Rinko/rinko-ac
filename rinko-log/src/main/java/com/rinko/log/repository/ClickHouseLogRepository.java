@@ -2,7 +2,7 @@ package com.rinko.log.repository;
 
 import tools.jackson.databind.ObjectMapper;
 import com.rinko.log.dto.LogMessage;
-import com.rinko.log.entity.LogEntry;
+import com.rinko.log.model.entity.LogEntry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

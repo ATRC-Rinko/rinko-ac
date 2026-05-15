@@ -2,7 +2,7 @@ package com.rinko.scheduler.executor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rinko.infra.exception.InternalException;
-import com.rinko.scheduler.entity.SchedulerJob;
+import com.rinko.scheduler.model.entity.SchedulerJob;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 

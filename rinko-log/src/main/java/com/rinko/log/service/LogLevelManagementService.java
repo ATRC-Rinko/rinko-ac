@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rinko.infra.exception.NotFoundException;
 import com.rinko.infra.exception.ValidationException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
-import com.rinko.log.entity.LogLevelConfig;
+import com.rinko.log.model.entity.LogLevelConfig;
 import com.rinko.log.repository.LogLevelConfigMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

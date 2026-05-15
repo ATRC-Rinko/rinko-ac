@@ -1,8 +1,8 @@
 package com.rinko.scheduler.controller;
 
 import com.rinko.infra.dto.ApiResponse;
-import com.rinko.scheduler.entity.SchedulerExecution;
-import com.rinko.scheduler.entity.SchedulerJob;
+import com.rinko.scheduler.model.vo.SchedulerExecutionVO;
+import com.rinko.scheduler.model.vo.SchedulerJobVO;
 import com.rinko.scheduler.service.SchedulerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,15 +24,17 @@ public class SchedulerController {
 
     @GetMapping("/jobs")
     @Operation(summary = "列出所有任务")
-    public ApiResponse<List<SchedulerJob>> listJobs() {
-        return ApiResponse.success(schedulerService.listJobs());
+    public ApiResponse<List<SchedulerJobVO>> listJobs() {
+        return ApiResponse.success(schedulerService.listJobs().stream()
+                .map(SchedulerJobVO::from)
+                .toList());
     }
 
     @PostMapping("/jobs")
     @Operation(summary = "创建任务")
-    public ApiResponse<SchedulerJob> createJob(@RequestBody SchedulerJob job, HttpServletResponse response) {
+    public ApiResponse<SchedulerJobVO> createJob(@RequestBody com.rinko.scheduler.model.entity.SchedulerJob job, HttpServletResponse response) {
         response.setStatus(201);
-        return ApiResponse.success(schedulerService.createJob(job));
+        return ApiResponse.success(SchedulerJobVO.from(schedulerService.createJob(job)));
     }
 
     @DeleteMapping("/jobs/{id}")
@@ -65,7 +67,9 @@ public class SchedulerController {
 
     @GetMapping("/executions")
     @Operation(summary = "查询执行历史")
-    public ApiResponse<List<SchedulerExecution>> getExecutions(@RequestParam long jobId) {
-        return ApiResponse.success(schedulerService.getExecutions(jobId));
+    public ApiResponse<List<SchedulerExecutionVO>> getExecutions(@RequestParam long jobId) {
+        return ApiResponse.success(schedulerService.getExecutions(jobId).stream()
+                .map(SchedulerExecutionVO::from)
+                .toList());
     }
 }
