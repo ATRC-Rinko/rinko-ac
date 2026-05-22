@@ -15,15 +15,21 @@ class GatewayCorsConfig {
     @Bean
     fun corsWebFilter(corsProperties: CorsProperties): CorsWebFilter {
         val config = CorsConfiguration().apply {
-            allowedOrigins = corsProperties.allowedOrigins
+            // 使用 allowedOriginPatterns 替代 allowedOrigins，支持 "*"
+            corsProperties.allowedOrigins.forEach { pattern ->
+                this.addAllowedOriginPattern(pattern)
+            }
+
             allowedMethods = corsProperties.allowedMethods
             allowedHeaders = corsProperties.allowedHeaders
             allowCredentials = corsProperties.isAllowCredentials
             maxAge = corsProperties.maxAge
         }
+
         val source = UrlBasedCorsConfigurationSource().apply {
             registerCorsConfiguration("/**", config)
         }
+
         return CorsWebFilter(source)
     }
 }

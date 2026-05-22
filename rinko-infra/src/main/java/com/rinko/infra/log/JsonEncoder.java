@@ -4,6 +4,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.encoder.EncoderBase;
 import org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.SkyWalkingContextJsonProvider;
 import org.apache.skywalking.apm.toolkit.log.logback.v1.x.logstash.TraceIdJsonProvider;
+import org.apache.skywalking.apm.toolkit.trace.TraceContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -34,8 +35,8 @@ public class JsonEncoder extends EncoderBase<ILoggingEvent> {
         logMap.put("timestamp", ISO_FORMATTER.format(Instant.ofEpochMilli(event.getTimeStamp())));
         logMap.put("level", event.getLevel().toString());
         logMap.put("service", serviceName);
-        logMap.put("traceId", event.getLoggerContextVO().getPropertyMap().getOrDefault(TraceIdJsonProvider.TRACING_ID, "N/A"));
-        logMap.put("spanId", event.getLoggerContextVO().getPropertyMap().getOrDefault(SkyWalkingContextJsonProvider.SKYWALKING_CONTEXT, "N/A"));
+        logMap.put("traceId", TraceContext.traceId());
+        logMap.put("spanId",TraceContext.spanId());
         logMap.put("class", event.getLoggerName());
         logMap.put("message", event.getFormattedMessage());
         logMap.put("thread", event.getThreadName());

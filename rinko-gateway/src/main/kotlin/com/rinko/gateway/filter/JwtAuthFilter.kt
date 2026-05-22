@@ -3,6 +3,7 @@ package com.rinko.gateway.filter
 import com.rinko.gateway.config.GatewayAuthProperties
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import org.apache.skywalking.apm.toolkit.trace.TraceContext
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.GlobalFilter
@@ -17,7 +18,6 @@ import org.springframework.util.AntPathMatcher
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import java.nio.charset.StandardCharsets
-import javax.crypto.SecretKey
 
 @Component
 class JwtAuthFilter(
@@ -60,7 +60,6 @@ class JwtAuthFilter(
                 .header(HEADER_USER_ID, userId.toString())
                 .header(HEADER_USER_ROLES, roles.joinToString(","))
                 .build()
-
             chain.filter(exchange.mutate().request(request).build())
         } catch (e: Exception) {
             log.debug("JWT validation failed: {}", e.message)
