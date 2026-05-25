@@ -14,4 +14,9 @@ public class ForbiddenException extends RinkoException {
     public ForbiddenException(String message, Throwable cause) {
         super("FORBIDDEN", message, HttpStatus.FORBIDDEN, cause);
     }
+
+    @Override
+    protected String getTitle() {
+        return "Forbidden";
+    }
 }

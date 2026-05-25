@@ -14,4 +14,9 @@ public class ValidationException extends RinkoException {
     public ValidationException(String message, Throwable cause) {
         super("VALIDATION_ERROR", message, HttpStatus.BAD_REQUEST, cause);
     }
+
+    @Override
+    protected String getTitle() {
+        return "Bad Request";
+    }
 }

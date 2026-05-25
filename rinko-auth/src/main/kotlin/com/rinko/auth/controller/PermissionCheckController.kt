@@ -2,11 +2,10 @@ package com.rinko.auth.controller
 
 import com.rinko.auth.service.PermissionEvaluator
 import com.rinko.infra.dto.ApiResponse
+import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @RestController
@@ -18,17 +17,11 @@ class PermissionCheckController(
 
     @PostMapping("/check")
     @Operation(summary = "权限校验：检查用户是否拥有指定权限")
-    fun checkPermission(@RequestBody body: Map<String, Any>, exchange: ServerWebExchange): Mono<ApiResponse<Map<String, Boolean>>> {
+    fun checkPermission(@RequestBody body: Map<String, Any>): Mono<ApiResponse<Map<String, Boolean>>> {
         val userId = (body["userId"] as? Number)?.toLong()
-        if (userId == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "userId is required"))
-        }
+            ?: throw ValidationException("userId is required")
         val requiredPermission = body["requiredPermission"] as? String
-        if (requiredPermission == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "requiredPermission is required"))
-        }
+            ?: throw ValidationException("requiredPermission is required")
         return permissionEvaluator.checkPermission(userId, requiredPermission)
             .map { authorized -> ApiResponse.success(mapOf("authorized" to authorized)) }
     }

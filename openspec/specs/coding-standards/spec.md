@@ -328,15 +328,19 @@ Virtual Threads SHALL NOT be used for `synchronized`-heavy code paths, as they p
 
 ### Requirement: Unified API Response Format
 
-All REST API endpoints SHALL return responses wrapped in `ApiResponse<T>` from `rinko-infra`.
+All REST API success responses SHALL return `ApiResponse<T>` from `rinko-infra` via `ApiResponse.success(data)` with HTTP 2xx.
 
-Successful responses SHALL use `ApiResponse.success(data)` with HTTP 2xx.
+All REST API error responses SHALL return `ProblemDetail` (RFC 7807) via `RinkoException.toProblemDetail()` — the `ApiResponse.error()` method no longer exists.
+
+Controllers SHALL throw `RinkoException` subclasses for error conditions rather than returning error responses directly.
 
 `RinkoException` and its subclasses SHALL be automatically handled by the global exception handler — controllers SHALL NOT catch them manually.
 
 The response format SHALL be consistent across Servlet (Java) and WebFlux (Kotlin) modules via two separate `@RestControllerAdvice` handlers:
-- `GlobalExceptionHandler` — Servlet modules, sets status via `HttpServletResponse`
-- `ReactiveGlobalExceptionHandler` — WebFlux modules, sets status via `ServerWebExchange`
+- `GlobalExceptionHandler` — Servlet modules, returns `ProblemDetail` and sets `Content-Type: application/problem+json`
+- `ReactiveGlobalExceptionHandler` — WebFlux modules, returns `Mono<ProblemDetail>` and sets `Content-Type: application/problem+json`
+
+Both handlers SHALL additionally handle `MethodArgumentNotValidException` (Servlet) and `WebExchangeBindException` (Reactive) for `@Valid` validation failures, returning ProblemDetail with status 400 and type `/errors/validation-error`.
 
 #### Scenario: Successful response
 
@@ -346,8 +350,13 @@ The response format SHALL be consistent across Servlet (Java) and WebFlux (Kotli
 #### Scenario: Validation exception
 
 - **WHEN** a `ValidationException` is thrown from the service layer
-- **THEN** the handler SHALL return `ApiResponse.error(400, "...")` without `ResponseEntity` wrapping
-- **AND** HTTP status SHALL be 400
+- **THEN** the handler SHALL return a `ProblemDetail` with `type="/errors/validation-error"`, `status=400`, and `Content-Type: application/problem+json`
+
+#### Scenario: Controller handles invalid input
+
+- **WHEN** a controller validates input and finds it invalid
+- **THEN** the controller SHALL throw `ValidationException`
+- **AND** SHALL NOT return `ApiResponse.error()` or manually set HTTP status codes for errors
 
 ---
 

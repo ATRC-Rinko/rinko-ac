@@ -14,4 +14,9 @@ public class NotFoundException extends RinkoException {
     public NotFoundException(String message, Throwable cause) {
         super("NOT_FOUND", message, HttpStatus.NOT_FOUND, cause);
     }
+
+    @Override
+    protected String getTitle() {
+        return "Not Found";
+    }
 }

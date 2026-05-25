@@ -2,12 +2,12 @@ package com.rinko.auth.controller
 
 import com.rinko.auth.service.OAuth2Service
 import com.rinko.infra.dto.ApiResponse
+import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import java.net.URI
 
@@ -43,26 +43,22 @@ class OAuth2Controller(
         @RequestParam("client_secret") clientSecret: String,
         @RequestParam(value = "code", required = false) code: String?,
         @RequestParam(value = "redirect_uri", required = false) redirectUri: String?,
-        @RequestParam(value = "scope", required = false) scope: String?,
-        exchange: ServerWebExchange
+        @RequestParam(value = "scope", required = false) scope: String?
     ): Mono<ApiResponse<Map<String, Any>>> {
         return when (grantType) {
             "authorization_code" -> {
                 if (code == null || redirectUri == null) {
-                    exchange.response.statusCode = HttpStatus.valueOf(400)
-                    Mono.just(ApiResponse.error<Map<String, Any>>(400, "code and redirect_uri are required"))
-                } else {
-                    oauth2Service.tokenAuthorizationCode(clientId, clientSecret, code, redirectUri)
-                        .map { ApiResponse.success(it) }
+                    throw ValidationException("code and redirect_uri are required")
                 }
+                oauth2Service.tokenAuthorizationCode(clientId, clientSecret, code, redirectUri)
+                    .map { ApiResponse.success(it) }
             }
             "client_credentials" -> {
                 oauth2Service.tokenClientCredentials(clientId, clientSecret, scope)
                     .map { ApiResponse.success(it) }
             }
             else -> {
-                exchange.response.statusCode = HttpStatus.valueOf(400)
-                Mono.just(ApiResponse.error<Map<String, Any>>(400, "Unsupported grant_type: $grantType"))
+                throw ValidationException("Unsupported grant_type: $grantType")
             }
         }
     }

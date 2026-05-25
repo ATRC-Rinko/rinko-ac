@@ -14,4 +14,9 @@ public class InternalException extends RinkoException {
     public InternalException(String message, Throwable cause) {
         super("INTERNAL_ERROR", message, HttpStatus.INTERNAL_SERVER_ERROR, cause);
     }
+
+    @Override
+    protected String getTitle() {
+        return "Internal Server Error";
+    }
 }

@@ -2,6 +2,7 @@ package com.rinko.notify.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rinko.infra.dto.ApiResponse;
+import com.rinko.infra.exception.NotFoundException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.notify.model.dto.CreateTemplateRequest;
 import com.rinko.notify.model.dto.UpdateTemplateRequest;
@@ -57,7 +58,7 @@ public class TemplateController {
     public ApiResponse<NotificationTemplateVO> updateTemplate(@PathVariable long id, @RequestBody UpdateTemplateRequest req) {
         var template = templateMapper.selectById(id);
         if (template == null) {
-            return ApiResponse.error(404, "Template not found");
+            throw new NotFoundException("Template not found");
         }
         if (req.name() != null) template.setName(req.name());
         if (req.subject() != null) template.setSubject(req.subject());

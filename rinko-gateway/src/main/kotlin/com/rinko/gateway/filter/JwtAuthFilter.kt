@@ -1,6 +1,8 @@
 package com.rinko.gateway.filter
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.rinko.gateway.config.GatewayAuthProperties
+import com.rinko.infra.dto.ProblemDetail
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.apache.skywalking.apm.toolkit.trace.TraceContext
@@ -27,6 +29,7 @@ class JwtAuthFilter(
     companion object {
         private val log = LoggerFactory.getLogger(JwtAuthFilter::class.java)
         private val pathMatcher = AntPathMatcher()
+        private val objectMapper = ObjectMapper()
         const val HEADER_USER_ID = "X-User-Id"
         const val HEADER_USER_ROLES = "X-User-Roles"
     }
@@ -76,11 +79,13 @@ class JwtAuthFilter(
     private fun unauthorized(exchange: ServerWebExchange, message: String): Mono<Void> {
         exchange.response.statusCode = HttpStatus.UNAUTHORIZED
         exchange.response.headers.contentType = MediaType.APPLICATION_PROBLEM_JSON
-        val body = """
-            {"type":"about:blank","title":"Unauthorized","status":401,"detail":"$message"}
-        """.trimIndent()
+        val pd = ProblemDetail.builder("Unauthorized", 401)
+            .type("/errors/unauthorized")
+            .detail(message)
+            .build()
+        val json = objectMapper.writeValueAsString(pd)
         val buffer: DataBuffer = exchange.response.bufferFactory()
-            .wrap(body.toByteArray(StandardCharsets.UTF_8))
+            .wrap(json.toByteArray(StandardCharsets.UTF_8))
         return exchange.response.writeWith(Mono.just(buffer))
     }
 }

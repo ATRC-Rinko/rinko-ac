@@ -5,6 +5,7 @@ import com.rinko.auth.service.PermissionService
 import com.rinko.auth.service.RoleService
 import com.rinko.infra.dto.ApiResponse
 import com.rinko.infra.dto.PageRequest
+import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -34,10 +35,7 @@ class RoleController(
     @Operation(summary = "创建角色")
     fun createRole(@RequestBody body: Map<String, String>, exchange: ServerWebExchange): Mono<ApiResponse<Role>> {
         val name = body["name"]
-        if (name == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "name is required"))
-        }
+            ?: throw ValidationException("name is required")
         exchange.response.statusCode = HttpStatus.valueOf(201)
         return roleService.createRole(name, body["description"])
             .map { ApiResponse.success(it) }
@@ -45,12 +43,9 @@ class RoleController(
 
     @PutMapping("/roles/{roleId}")
     @Operation(summary = "更新角色")
-    fun updateRole(@PathVariable roleId: Long, @RequestBody body: Map<String, String>, exchange: ServerWebExchange): Mono<ApiResponse<Role>> {
+    fun updateRole(@PathVariable roleId: Long, @RequestBody body: Map<String, String>): Mono<ApiResponse<Role>> {
         val name = body["name"]
-        if (name == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "name is required"))
-        }
+            ?: throw ValidationException("name is required")
         return roleService.updateRole(roleId, name, body["description"])
             .map { ApiResponse.success(it) }
     }
@@ -69,15 +64,11 @@ class RoleController(
     @Operation(summary = "批量分配权限给角色")
     fun assignPermissions(
         @PathVariable roleId: Long,
-        @RequestBody body: Map<String, Any>,
-        exchange: ServerWebExchange
+        @RequestBody body: Map<String, Any>
     ): Mono<ApiResponse<Void>> {
-        val permissionIds = body["permissionIds"] as? List<Int>
-        if (permissionIds == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "permissionIds is required"))
-        }
-        return permissionService.assignPermissionsToRole(roleId, permissionIds.map { it.toLong() })
+        val permissionIds = (body["permissionIds"] as? List<*>)?.map { (it as Number).toLong() }
+            ?: throw ValidationException("permissionIds is required")
+        return permissionService.assignPermissionsToRole(roleId, permissionIds)
             .map { ApiResponse.success(null) }
     }
 
@@ -99,15 +90,11 @@ class RoleController(
     @Operation(summary = "批量分配角色给用户")
     fun assignRoles(
         @PathVariable userId: Long,
-        @RequestBody body: Map<String, Any>,
-        exchange: ServerWebExchange
+        @RequestBody body: Map<String, Any>
     ): Mono<ApiResponse<Void>> {
-        val roleIds = body["roleIds"] as? List<Int>
-        if (roleIds == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "roleIds is required"))
-        }
-        return roleService.assignRolesToUser(userId, roleIds.map { it.toLong() })
+        val roleIds = (body["roleIds"] as? List<*>)?.map { (it as Number).toLong() }
+            ?: throw ValidationException("roleIds is required")
+        return roleService.assignRolesToUser(userId, roleIds)
             .map { ApiResponse.success(null) }
     }
 

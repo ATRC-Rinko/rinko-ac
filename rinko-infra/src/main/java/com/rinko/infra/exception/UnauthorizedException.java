@@ -14,4 +14,9 @@ public class UnauthorizedException extends RinkoException {
     public UnauthorizedException(String message, Throwable cause) {
         super("UNAUTHORIZED", message, HttpStatus.UNAUTHORIZED, cause);
     }
+
+    @Override
+    protected String getTitle() {
+        return "Unauthorized";
+    }
 }

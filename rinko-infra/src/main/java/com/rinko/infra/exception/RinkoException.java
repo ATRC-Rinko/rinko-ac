@@ -1,5 +1,6 @@
 package com.rinko.infra.exception;
 
+import com.rinko.infra.dto.ProblemDetail;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -35,5 +36,17 @@ public class RinkoException extends RuntimeException {
 
     public HttpStatus getHttpStatus() {
         return httpStatus;
+    }
+
+    public ProblemDetail toProblemDetail() {
+        String type = "/errors/" + errorCode.toLowerCase().replace('_', '-');
+        return ProblemDetail.builder(getTitle(), httpStatus.value())
+                .type(type)
+                .detail(errorMessage)
+                .build();
+    }
+
+    protected String getTitle() {
+        return "Internal Server Error";
     }
 }

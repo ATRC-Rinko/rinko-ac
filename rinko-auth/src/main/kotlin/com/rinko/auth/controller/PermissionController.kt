@@ -3,6 +3,7 @@ package com.rinko.auth.controller
 import com.rinko.auth.entity.Permission
 import com.rinko.auth.service.PermissionService
 import com.rinko.infra.dto.ApiResponse
+import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -29,10 +30,7 @@ class PermissionController(
     @Operation(summary = "创建权限")
     fun createPermission(@RequestBody body: Map<String, String>, exchange: ServerWebExchange): Mono<ApiResponse<Permission>> {
         val code = body["code"]
-        if (code == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "code is required"))
-        }
+            ?: throw ValidationException("code is required")
         exchange.response.statusCode = HttpStatus.valueOf(201)
         return permissionService.createPermission(code, body["description"])
             .map { ApiResponse.success(it) }
@@ -42,14 +40,10 @@ class PermissionController(
     @Operation(summary = "更新权限")
     fun updatePermission(
         @PathVariable permissionId: Long,
-        @RequestBody body: Map<String, String>,
-        exchange: ServerWebExchange
+        @RequestBody body: Map<String, String>
     ): Mono<ApiResponse<Permission>> {
         val code = body["code"]
-        if (code == null) {
-            exchange.response.statusCode = HttpStatus.valueOf(400)
-            return Mono.just(ApiResponse.error(400, "code is required"))
-        }
+            ?: throw ValidationException("code is required")
         return permissionService.updatePermission(permissionId, code, body["description"])
             .map { ApiResponse.success(it) }
     }
