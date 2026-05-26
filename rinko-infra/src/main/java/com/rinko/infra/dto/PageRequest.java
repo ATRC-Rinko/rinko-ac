@@ -13,13 +13,13 @@ public class PageRequest {
 
     private final int page;
     private final int size;
-    private final String sort;
+    private final SortOrder sort;
 
     public PageRequest() {
         this(DEFAULT_PAGE, DEFAULT_SIZE, null);
     }
 
-    public PageRequest(int page, int size, String sort) {
+    public PageRequest(int page, int size, SortOrder sort) {
         this.page = Math.max(1, page);
         this.size = Math.min(Math.max(1, size), MAX_SIZE);
         this.sort = sort;
@@ -33,7 +33,7 @@ public class PageRequest {
         return size;
     }
 
-    public String getSort() {
+    public SortOrder getSort() {
         return sort;
     }
 

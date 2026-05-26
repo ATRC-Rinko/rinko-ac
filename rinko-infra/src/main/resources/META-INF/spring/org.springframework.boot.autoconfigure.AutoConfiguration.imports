@@ -1,2 +1,3 @@
 com.rinko.infra.web.GlobalExceptionHandler
 com.rinko.infra.web.ReactiveGlobalExceptionHandler
+com.rinko.infra.config.JacksonAutoConfiguration
