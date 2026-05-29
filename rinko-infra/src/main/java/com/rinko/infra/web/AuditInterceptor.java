@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
  * 审计拦截器。
  * 记录每个请求的来源 IP、URI、耗时，并通过 MDC 注入 requestId。
  */
+@Component
 public class AuditInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(AuditInterceptor.class);
@@ -27,6 +29,7 @@ public class AuditInterceptor implements HandlerInterceptor {
         request.setAttribute(START_TIME_KEY, System.currentTimeMillis());
         log.info("Request started: {} {} from {}", request.getMethod(), request.getRequestURI(),
                 request.getRemoteAddr());
+        log.info("X-User-Id: {}", request.getHeader("X-User-Id"));
         return true;
     }
 
