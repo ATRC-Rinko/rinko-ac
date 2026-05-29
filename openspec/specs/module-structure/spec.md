@@ -21,7 +21,7 @@ Every module SHALL have the following minimum directory structure:
 │   │   └── resources/
 │   │       ├── application.yml
 │   │       ├── logback-spring.xml
-│   │       └── db/migration/    # Flyway migration scripts (if module has DB)
+│   │       └── db/migration/    # Database migration scripts (if module has DB)
 │   └── test/
 │       ├── java/
 │       │   └── com/rinko/{module}/

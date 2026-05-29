@@ -1,34 +1,10 @@
 # Database Standards
 
-This specification defines database standards for the Rinko project. Requirements are derived from Flyway migration scripts, R2DBC entity patterns in `rinko-auth`, and JDBC/Druid configuration in `rinko-infra`.
+This specification defines database standards for the Rinko project, covering table design conventions, entity and repository patterns, R2DBC/JDBC configuration, and SQL parameterization.
 
 ---
 
 ## ADDED Requirements
-
-### Requirement: Flyway Migration Scripts
-
-All database schema changes SHALL be managed through Flyway migration scripts.
-
-Migration scripts SHALL be placed in `src/main/resources/db/migration/` in each module.
-
-Script naming convention SHALL follow Flyway standard: `V{version}__{description}.sql` (double underscore after version).
-
-Version numbers SHALL be sequential integers starting from 1 (e.g., V1, V2, V3).
-
-Each migration script SHALL be idempotent where possible (use `CREATE TABLE IF NOT EXISTS`).
-
-#### Scenario: Adding a new table for file metadata in rinko-oss
-
-- **WHEN** a developer needs to add a `files` table
-- **THEN** the migration file SHALL be named `V1__create_files.sql` (first migration for the module)
-- **AND** it SHALL use `CREATE TABLE IF NOT EXISTS files (...)`
-
-#### Scenario: Adding a column to an existing table
-
-- **WHEN** a new column `content_type` needs to be added to the `files` table
-- **THEN** a new migration `V2__add_content_type_to_files.sql` SHALL be created
-- **AND** it SHALL use `ALTER TABLE files ADD COLUMN IF NOT EXISTS content_type VARCHAR(255)`
 
 ---
 
@@ -169,11 +145,10 @@ spring:
     password: ${DB_PASSWORD:}
 ```
 
-R2DBC and JDBC MAY coexist in the same module if needed (e.g., Flyway requires JDBC for migrations). When both exist, JDBC SHALL be used only for migrations and R2DBC for runtime queries.
+Modules SHALL use either R2DBC (for reactive/WebFlux modules) or JDBC (for servlet modules), not both simultaneously for runtime queries.
 
 #### Scenario: rinko-auth database configuration
 
 - **WHEN** `rinko-auth` starts up
-- **THEN** both JDBC URL (for Flyway) and R2DBC URL (for runtime) SHALL be configured
-- **AND** Flyway SHALL run migrations via JDBC on startup
+- **THEN** the R2DBC connection SHALL be configured via `spring.r2dbc.*` properties
 - **AND** runtime queries SHALL use R2DBC via `ReactiveCrudRepository`

@@ -44,7 +44,7 @@ Transaction service group SHALL be `rinko-tx-group`.
 
 ### Requirement: undo_log Table
 
-Each module's database SHALL have `undo_log` table created via Flyway migration.
+Each module's database SHALL have `undo_log` table created during module initialization.
 
 The `undo_log` table SHALL follow Seata AT mode schema with columns: `id`, `branch_id`, `xid`, `context`, `rollback_info`, `log_status`, `log_created`, `log_modified`.
 

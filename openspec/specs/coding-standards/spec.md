@@ -27,7 +27,6 @@ Infrastructure modules (rinko-infra) MAY use additional sub-packages:
 - `log` — logging components (encoders, converters)
 - `id` — ID generation utilities
 - `datasource` — data source routing
-- `flyway` — database migration support
 - `exception` — exception model classes
 
 #### Scenario: New Servlet business module created
