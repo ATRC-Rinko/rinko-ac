@@ -225,17 +225,9 @@ services:
       - skywalking-oap
       - kafka
     environment:
-      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
-        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
-        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED
     entrypoint:
       [
         "java",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
         "-Dskywalking.agent.service_name=rinko-auth",
         "-Dskywalking.collector.backend_service=skywalking-oap:11800",
@@ -254,18 +246,10 @@ services:
       - skywalking-oap
       - kafka
     environment:
-      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
-        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
-        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED
       - NACOS_SERVER=nacos:8848
     entrypoint:
       [
         "java",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
         "-Dskywalking.agent.service_name=rinko-gateway",
         "-Dskywalking.collector.backend_service=skywalking-oap:11800",
@@ -286,18 +270,10 @@ services:
       - skywalking-oap
       - kafka
     environment:
-      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
-        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
-        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED
       - NACOS_SERVER=nacos:8848
     entrypoint:
       [
         "java",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
         "-Dskywalking.agent.service_name=rinko-log",
         "-Dskywalking.collector.backend_service=skywalking-oap:11800",
@@ -316,18 +292,10 @@ services:
       - skywalking-oap
       - kafka
     environment:
-      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
-        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
-        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED
       - NACOS_SERVER=nacos:8848
     entrypoint:
       [
         "java",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
         "-Dskywalking.agent.service_name=rinko-oss",
         "-Dskywalking.collector.backend_service=skywalking-oap:11800",
@@ -346,18 +314,10 @@ services:
       - skywalking-oap
       - kafka
     environment:
-      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
-        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
-        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED
       - NACOS_SERVER=nacos:8848
     entrypoint:
       [
         "java",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
         "-Dskywalking.agent.service_name=rinko-notify",
         "-Dskywalking.collector.backend_service=skywalking-oap:11800",
@@ -376,18 +336,10 @@ services:
       - skywalking-oap
       - kafka
     environment:
-      - JAVA_OPTS=--add-opens java.base/java.lang=ALL-UNNAMED \
-        --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
-        --add-opens java.base/java.lang.invoke=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED
       - NACOS_SERVER=nacos:8848
     entrypoint:
       [
         "java",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "-javaagent:/app/skywalking-agent/skywalking-agent.jar",
         "-Dskywalking.agent.service_name=rinko-scheduler",
         "-Dskywalking.collector.backend_service=skywalking-oap:11800",
