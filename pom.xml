@@ -22,6 +22,7 @@
     <modules>
         <module>rinko-infra</module>
         <module>rinko-ai</module>
+        <module>rinko-channel</module>
         <module>rinko-gateway</module>
         <module>rinko-auth</module>
         <module>rinko-oss</module>
