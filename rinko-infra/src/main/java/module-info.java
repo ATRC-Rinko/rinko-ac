@@ -10,6 +10,7 @@ module com.rinko.infra {
     requires java.sql;
 
     // ===== Framework dependencies (on module path as automatic/named modules) =====
+    requires spring.beans;
     requires spring.boot;
     requires spring.boot.autoconfigure;
     requires spring.boot.jackson;
@@ -31,8 +32,8 @@ module com.rinko.infra {
     requires kafka.clients;
 
     // ===== SkyWalking APM =====
-    // requires apm.toolkit.trace; // removed: no stable JPMS module name
-    // requires apm.toolkit.logback; // removed: no stable JPMS module name
+    requires apm.toolkit.logback;
+    requires apm.toolkit.trace;
 
     // ===== Logging =====
     requires org.slf4j;
@@ -44,6 +45,7 @@ module com.rinko.infra {
 
     // ===== Lombok (compile only) =====
     requires static lombok;
+    requires static org.jspecify;
 
     // ===== Optional: only present when consumer pulls in webmvc =====
     requires static spring.webmvc;

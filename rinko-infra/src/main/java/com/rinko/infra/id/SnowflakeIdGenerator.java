@@ -110,7 +110,7 @@ public class SnowflakeIdGenerator {
         return System.currentTimeMillis();
     }
 
-    private static long computeWorkerId() {
+    private static long computeWorkerIdFromMac() {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             if (interfaces != null) {

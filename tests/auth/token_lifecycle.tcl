@@ -1,7 +1,7 @@
 #!/usr/bin/env tclsh
 
-# T067: token_lifecycle.tcl
-# Token 过期 → refresh 换新 → revoke 吊销 → 旧 Token 403
+# token_lifecycle.tcl
+# Token 刷新 → 吊销 → 旧 Token 不可用（验证 DTO 变更后 API 兼容性）
 
 package require http
 package require json
