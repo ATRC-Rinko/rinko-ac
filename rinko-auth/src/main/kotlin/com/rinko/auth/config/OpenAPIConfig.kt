@@ -15,19 +15,22 @@ class OpenAPIConfig {
     fun openAPI(): OpenAPI {
         val securitySchemeName = "bearerAuth"
         return OpenAPI()
-            .info(Info()
-                .title("rinko-auth API")
-                .description("Rinko 认证鉴权服务接口文档")
-                .version("1.0.0")
+            .info(
+                Info()
+                    .title("rinko-auth API")
+                    .description("Rinko 认证鉴权服务接口文档")
+                    .version("1.0.0")
             )
             .addSecurityItem(SecurityRequirement().addList(securitySchemeName))
-            .components(Components()
-                .addSecuritySchemes(securitySchemeName, SecurityScheme()
-                    .name(securitySchemeName)
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")
-                )
+            .components(
+                Components()
+                    .addSecuritySchemes(
+                        securitySchemeName, SecurityScheme()
+                            .name(securitySchemeName)
+                            .type(SecurityScheme.Type.HTTP)
+                            .scheme("bearer")
+                            .bearerFormat("JWT")
+                    )
             )
     }
 }

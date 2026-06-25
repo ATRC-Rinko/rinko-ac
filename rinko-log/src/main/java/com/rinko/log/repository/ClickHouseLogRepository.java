@@ -1,10 +1,10 @@
 package com.rinko.log.repository;
 
-import tools.jackson.databind.ObjectMapper;
 import com.rinko.log.dto.LogMessage;
 import com.rinko.log.model.entity.LogEntry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -56,11 +56,11 @@ public class ClickHouseLogRepository {
      * 查询日志，支持多条件过滤。
      */
     public List<LogEntry> queryLogs(String startTime, String endTime, String level,
-                                      String service, String traceId, String keyword,
-                                      int offset, int limit) {
+                                    String service, String traceId, String keyword,
+                                    int offset, int limit) {
         StringBuilder sql = new StringBuilder(
                 "SELECT timestamp, level, service, traceId, spanId, class, message, thread, context, exception, exceptionClass " +
-                "FROM logs WHERE timestamp >= ? AND timestamp <= ?");
+                        "FROM logs WHERE timestamp >= ? AND timestamp <= ?");
         List<Object> params = new ArrayList<>();
         params.add(Timestamp.valueOf(startTime.replace("T", " ")));
         params.add(Timestamp.valueOf(endTime.replace("T", " ")));
@@ -78,8 +78,8 @@ public class ClickHouseLogRepository {
             params.add(traceId);
         }
         if (keyword != null && !keyword.isEmpty()) {
-            sql.append(" AND message LIKE ?");
-            params.add("%" + keyword + "%");
+            sql.append(" AND message LIKE ? ESCAPE '\\'");
+            params.add("%" + escapeLike(keyword) + "%");
         }
 
         sql.append(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
@@ -112,7 +112,7 @@ public class ClickHouseLogRepository {
      * 统计日志条数。
      */
     public long countLogs(String startTime, String endTime, String level,
-                           String service, String traceId, String keyword) {
+                          String service, String traceId, String keyword) {
         StringBuilder sql = new StringBuilder("SELECT count(*) FROM logs WHERE timestamp >= ? AND timestamp <= ?");
         List<Object> params = new ArrayList<>();
         params.add(Timestamp.valueOf(startTime.replace("T", " ")));
@@ -131,11 +131,20 @@ public class ClickHouseLogRepository {
             params.add(traceId);
         }
         if (keyword != null && !keyword.isEmpty()) {
-            sql.append(" AND message LIKE ?");
-            params.add("%" + keyword + "%");
+            sql.append(" AND message LIKE ? ESCAPE '\\'");
+            params.add("%" + escapeLike(keyword) + "%");
         }
 
         Long count = jdbcTemplate.queryForObject(sql.toString(), Long.class, params.toArray());
         return count != null ? count : 0;
+    }
+
+    /**
+     * Escape LIKE wildcard characters in user-supplied keyword.
+     */
+    private String escapeLike(String keyword) {
+        return keyword.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 }

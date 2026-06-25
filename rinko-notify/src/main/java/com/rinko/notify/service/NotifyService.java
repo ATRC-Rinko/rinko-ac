@@ -3,15 +3,14 @@ package com.rinko.notify.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.rinko.infra.id.SnowflakeIdGenerator;
-import com.rinko.notify.channel.InAppChannel;
 import com.rinko.notify.model.entity.NotificationHistory;
 import com.rinko.notify.model.entity.NotificationTemplate;
 import com.rinko.notify.repository.NotificationHistoryMapper;
 import com.rinko.notify.repository.NotificationTemplateMapper;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -26,6 +25,7 @@ public class NotifyService {
     private final SnowflakeIdGenerator idGenerator;
 
 
+    @Transactional
     public NotificationHistory send(String channel, String templateCode, String recipient, Map<String, String> variables) {
         NotificationHistory history = coverHistory(channel, templateCode, recipient, variables);
 
@@ -56,6 +56,7 @@ public class NotifyService {
         return history;
     }
 
+    @Transactional
     public Map<String, Object> sendBatch(String channel, String templateCode, List<String> recipients, Map<String, String> variables) {
         NotificationTemplate template = templateMapper.selectOne(
                 new LambdaQueryWrapper<NotificationTemplate>()

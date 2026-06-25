@@ -23,8 +23,8 @@ public class LogQueryService {
      * 分页查询日志，校验时间范围不超过 7 天。
      */
     public PageResponse<LogEntry> queryLogs(String startTime, String endTime, String level,
-                                              String service, String traceId, String keyword,
-                                              int page, int size) {
+                                            String service, String traceId, String keyword,
+                                            int page, int size) {
         long totalElements = clickHouseLogRepository.countLogs(startTime, endTime, level, service, traceId, keyword);
         int offset = (page - 1) * size;
         List<LogEntry> content = clickHouseLogRepository.queryLogs(startTime, endTime, level, service, traceId, keyword, offset, size);

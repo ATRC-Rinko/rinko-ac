@@ -17,14 +17,24 @@ public class LogLevelConfig {
     @TableId(type = IdType.INPUT)
     /** 主键ID */
     private Long id;
-    /** 服务名称 */
+    /**
+     * 服务名称
+     */
     private String serviceName;
-    /** 日志记录器名称 */
+    /**
+     * 日志记录器名称
+     */
     private String loggerName;
-    /** 日志级别（TRACE | DEBUG | INFO | WARN | ERROR） */
+    /**
+     * 日志级别（TRACE | DEBUG | INFO | WARN | ERROR）
+     */
     private String logLevel;
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     private LocalDateTime createdAt;
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     private LocalDateTime updatedAt;
 }

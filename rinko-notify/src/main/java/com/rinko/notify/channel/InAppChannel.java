@@ -14,7 +14,9 @@ public class InAppChannel implements NotificationChannel {
     }
 
     @Override
-    public String getType() { return "IN_APP"; }
+    public String getType() {
+        return "IN_APP";
+    }
 
     @Override
     public void send(NotificationHistory history) {

@@ -1,6 +1,5 @@
 package com.rinko.ai.orchestration;
 
-import com.rinko.ai.model.ChatRequest;
 import com.rinko.ai.model.ChatResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,7 +16,7 @@ public interface AgentOrchestrator {
     /**
      * 注册子 Agent。
      *
-     * @param name        子 Agent 名称
+     * @param name         子 Agent 名称
      * @param systemPrompt 系统提示词（定义角色和能力）
      */
     void registerAgent(String name, String systemPrompt);

@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BaseLocalDateTimeSerializer extends LocalDateTimeSerializer {
     private static final ConcurrentHashMap<String, BaseLocalDateTimeSerializer>
             CACHE = new ConcurrentHashMap<>();
+
     public BaseLocalDateTimeSerializer(DateTimeFormatter formatter) {
         super(formatter);
     }

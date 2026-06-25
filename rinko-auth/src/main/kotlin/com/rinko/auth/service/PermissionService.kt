@@ -80,13 +80,14 @@ class PermissionService(
             .flatMap { permId ->
                 permissionRepository.findById(permId)
                     .switchIfEmpty(Mono.error(NotFoundException("Permission not found: $permId")))
-                    .then(databaseClient.sql(
-                        "INSERT INTO role_permissions (role_id, permission_id) VALUES (:roleId, :permId) ON CONFLICT DO NOTHING"
-                    )
-                        .bind("roleId", roleId)
-                        .bind("permId", permId)
-                        .fetch()
-                        .rowsUpdated()
+                    .then(
+                        databaseClient.sql(
+                            "INSERT INTO role_permissions (role_id, permission_id) VALUES (:roleId, :permId) ON CONFLICT DO NOTHING"
+                        )
+                            .bind("roleId", roleId)
+                            .bind("permId", permId)
+                            .fetch()
+                            .rowsUpdated()
                     )
             }
             .then(Mono.fromRunnable {

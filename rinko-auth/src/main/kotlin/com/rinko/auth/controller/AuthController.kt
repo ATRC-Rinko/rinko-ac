@@ -4,9 +4,9 @@ import com.rinko.auth.dto.*
 import com.rinko.auth.service.AuthService
 import com.rinko.auth.service.VerificationCodeService
 import com.rinko.infra.dto.ApiResponse
-import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
@@ -50,19 +50,15 @@ class AuthController(
 
     @PostMapping("/token/refresh")
     @Operation(summary = "刷新 Access Token")
-    fun refreshToken(@RequestBody body: Map<String, String>): Mono<ApiResponse<TokenPair>> {
-        val refreshToken = body["refreshToken"]
-            ?: throw ValidationException("refreshToken is required")
-        return authService.refreshToken(refreshToken)
+    fun refreshToken(@Valid @RequestBody req: RefreshTokenRequest): Mono<ApiResponse<TokenPair>> {
+        return authService.refreshToken(req.refreshToken)
             .map { ApiResponse.success(it) }
     }
 
     @PostMapping("/token/revoke")
     @Operation(summary = "吊销 Refresh Token")
-    fun revokeToken(@RequestBody body: Map<String, String>): Mono<ApiResponse<MessageResponse>> {
-        val refreshToken = body["refreshToken"]
-            ?: throw ValidationException("refreshToken is required")
-        return authService.revokeToken(refreshToken)
+    fun revokeToken(@Valid @RequestBody req: RevokeTokenRequest): Mono<ApiResponse<MessageResponse>> {
+        return authService.revokeToken(req.refreshToken)
             .map { ApiResponse.success(it) }
     }
 }

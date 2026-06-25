@@ -10,7 +10,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.util.Date
 
 class JwtTokenProviderTest : StringSpec({
 

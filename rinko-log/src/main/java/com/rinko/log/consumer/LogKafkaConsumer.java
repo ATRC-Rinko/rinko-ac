@@ -29,7 +29,7 @@ public class LogKafkaConsumer {
         if (messages == null || messages.isEmpty()) {
             return;
         }
-        log.error("Received {} log messages from Kafka", messages.size());
+        log.debug("Received {} log messages from Kafka", messages.size());
         logIngestionService.ingestBatch(messages);
     }
 

@@ -24,14 +24,15 @@ module com.rinko.infra {
     requires jakarta.servlet;
 
     // ===== Database / Connection Pool =====
-    requires druid.spring.boot4.starter;
+    // requires druid.spring.boot4.starter; // removed: no stable JPMS module name
+    requires druid;
 
     // ===== Kafka =====
     requires kafka.clients;
 
     // ===== SkyWalking APM =====
-    requires apm.toolkit.trace;
-    requires apm.toolkit.logback;
+    // requires apm.toolkit.trace; // removed: no stable JPMS module name
+    // requires apm.toolkit.logback; // removed: no stable JPMS module name
 
     // ===== Logging =====
     requires org.slf4j;
@@ -46,5 +47,4 @@ module com.rinko.infra {
 
     // ===== Optional: only present when consumer pulls in webmvc =====
     requires static spring.webmvc;
-    requires druid;
 }

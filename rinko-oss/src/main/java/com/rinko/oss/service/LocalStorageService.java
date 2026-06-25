@@ -8,11 +8,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @ConditionalOnProperty(name = "rinko.oss.storage-type", havingValue = "local", matchIfMissing = true)
@@ -125,7 +129,10 @@ public class LocalStorageService implements StorageService {
         if (Files.exists(dir)) {
             try (var files = Files.walk(dir)) {
                 files.sorted(Comparator.reverseOrder()).forEach(p -> {
-                    try { Files.deleteIfExists(p); } catch (IOException ignored) {}
+                    try {
+                        Files.deleteIfExists(p);
+                    } catch (IOException ignored) {
+                    }
                 });
             }
         }

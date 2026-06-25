@@ -1,18 +1,19 @@
 # rinko-ai — AgentScope 2.0 集成模块
 
-Rinko AI 基础设施共享库，基于 [AgentScope Java 2.0](https://github.com/agentscope-ai/agentscope-java) 提供开箱即用的 AI Agent 能力。模块定位为共享库（与 `rinko-infra` 同级），供 WebFlux 模块引用。
+Rinko AI 基础设施共享库，基于 [AgentScope Java 2.0](https://github.com/agentscope-ai/agentscope-java) 提供开箱即用的 AI
+Agent 能力。模块定位为共享库（与 `rinko-infra` 同级），供 WebFlux 模块引用。
 
 ## 目录
 
 - [快速开始](#快速开始)
 - [配置参考](#配置参考)
 - [API 使用](#api-使用)
-  - [基础对话](#1-基础对话)
-  - [流式对话 SSE](#2-流式对话-sse)
-  - [RAG 知识库问答](#3-rag-知识库问答)
-  - [多 Agent 编排](#4-多-agent-编排)
-  - [自定义 Tool](#5-自定义-tool)
-  - [会话记忆](#6-会话记忆)
+    - [基础对话](#1-基础对话)
+    - [流式对话 SSE](#2-流式对话-sse)
+    - [RAG 知识库问答](#3-rag-知识库问答)
+    - [多 Agent 编排](#4-多-agent-编排)
+    - [自定义 Tool](#5-自定义-tool)
+    - [会话记忆](#6-会话记忆)
 - [提供商配置](#提供商配置)
 - [与现有模块集成](#与现有模块集成)
 
@@ -76,20 +77,20 @@ public class AiController {
 
 所有配置前缀为 `rinko.ai`，支持 Nacos 动态刷新。
 
-| 属性 | 默认值 | 说明 |
-|------|--------|------|
-| `rinko.ai.enabled` | `true` | 是否启用，设为 `false` 则不会创建任何 Bean |
-| `rinko.ai.model` | `dashscope:qwen-plus` | 模型字符串，格式 `provider:model-name` |
-| `rinko.ai.agent.name` | `rinko-assistant` | Agent 名称（用于日志和状态存储） |
-| `rinko.ai.agent.sys-prompt` | `You are a helpful AI assistant.` | 系统提示词 |
-| `rinko.ai.agent.workspace` | `./data/ai/workspace` | 工作区路径（存放 AGENTS.md、会话日志等） |
-| `rinko.ai.agent.compaction-trigger-messages` | `30` | 触发对话压缩的消息数阈值 |
-| `rinko.ai.agent.compaction-keep-messages` | `10` | 压缩后保留的最近消息数 |
-| `rinko.ai.rag.enabled` | `false` | 是否启用 RAG 知识库 |
-| `rinko.ai.rag.chunk-size` | `500` | 文档分块大小（字符数） |
-| `rinko.ai.rag.top-k` | `5` | 检索返回的 Top-K 文档数 |
-| `rinko.ai.memory.type` | `in-memory` | 记忆存储类型：`in-memory` \| `redis` |
-| `rinko.ai.memory.max-history` | `50` | 每个会话保留的最大历史条数 |
+| 属性                                           | 默认值                               | 说明                             |
+|----------------------------------------------|-----------------------------------|--------------------------------|
+| `rinko.ai.enabled`                           | `true`                            | 是否启用，设为 `false` 则不会创建任何 Bean   |
+| `rinko.ai.model`                             | `dashscope:qwen-plus`             | 模型字符串，格式 `provider:model-name` |
+| `rinko.ai.agent.name`                        | `rinko-assistant`                 | Agent 名称（用于日志和状态存储）            |
+| `rinko.ai.agent.sys-prompt`                  | `You are a helpful AI assistant.` | 系统提示词                          |
+| `rinko.ai.agent.workspace`                   | `./data/ai/workspace`             | 工作区路径（存放 AGENTS.md、会话日志等）      |
+| `rinko.ai.agent.compaction-trigger-messages` | `30`                              | 触发对话压缩的消息数阈值                   |
+| `rinko.ai.agent.compaction-keep-messages`    | `10`                              | 压缩后保留的最近消息数                    |
+| `rinko.ai.rag.enabled`                       | `false`                           | 是否启用 RAG 知识库                   |
+| `rinko.ai.rag.chunk-size`                    | `500`                             | 文档分块大小（字符数）                    |
+| `rinko.ai.rag.top-k`                         | `5`                               | 检索返回的 Top-K 文档数                |
+| `rinko.ai.memory.type`                       | `in-memory`                       | 记忆存储类型：`in-memory` \| `redis`  |
+| `rinko.ai.memory.max-history`                | `50`                              | 每个会话保留的最大历史条数                  |
 
 完整配置示例：
 
@@ -147,21 +148,21 @@ public Mono<ApiResponse<ChatResponse>> handleChat(String userMessage) {
 
 **ChatRequest** 字段：
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `message` | `String` | 用户消息（必填） |
-| `sessionId` | `String` | 会话 ID，不传则自动生成新会话 |
-| `context` | `Map<String,Object>` | 附加参数，传递给 Agent |
+| 参数          | 类型                   | 说明               |
+|-------------|----------------------|------------------|
+| `message`   | `String`             | 用户消息（必填）         |
+| `sessionId` | `String`             | 会话 ID，不传则自动生成新会话 |
+| `context`   | `Map<String,Object>` | 附加参数，传递给 Agent   |
 
 **ChatResponse** 字段：
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `sessionId` | `String` | 当前会话 ID |
-| `content` | `String` | 回复内容 |
-| `toolCalls` | `List<ToolCallRecord>` | 工具调用记录 |
-| `usage` | `TokenUsage` | Token 用量统计 |
-| `timestamp` | `LocalDateTime` | 时间戳 |
+| 参数          | 类型                     | 说明         |
+|-------------|------------------------|------------|
+| `sessionId` | `String`               | 当前会话 ID    |
+| `content`   | `String`               | 回复内容       |
+| `toolCalls` | `List<ToolCallRecord>` | 工具调用记录     |
+| `usage`     | `TokenUsage`           | Token 用量统计 |
+| `timestamp` | `LocalDateTime`        | 时间戳        |
 
 ### 2. 流式对话 SSE
 
@@ -229,7 +230,8 @@ public Flux<String> askKnowledgeStream(String question) {
 }
 ```
 
-**RAG 原理**：提问时自动检索相关文档片段，拼接到 System Prompt 中，让 LLM 基于参考资料回答。当前为内存实现，启用 pgvector 后可切换为语义向量检索。
+**RAG 原理**：提问时自动检索相关文档片段，拼接到 System Prompt 中，让 LLM 基于参考资料回答。当前为内存实现，启用 pgvector
+后可切换为语义向量检索。
 
 ### 4. 多 Agent 编排
 
@@ -336,20 +338,39 @@ public Toolkit agentScopeToolkit(MyBusinessTool myBusinessTool) {
 管理对话历史和上下文。
 
 ```java
+
 @Autowired
 private ConversationMemory memory;
 
 // 手动追加（通常由 Agent 自动管理，无需手动调用）
-memory.append("session-789", "user", "你好");
-memory.append("session-789", "assistant", "你好！有什么可以帮助你的？");
+memory.
+
+append("session-789","user","你好");
+memory.
+
+append("session-789","assistant","你好！有什么可以帮助你的？");
 
 // 获取最近 10 条历史
-memory.getRecentHistory("session-789", 10)
-        .subscribe(msgs -> msgs.forEach(m ->
-            System.out.println(m.role() + ": " + m.content())));
+memory.
+
+getRecentHistory("session-789",10)
+        .
+
+subscribe(msgs ->msgs.
+
+forEach(m ->
+        System.out.
+
+println(m.role() +": "+m.
+
+content())));
 
 // 清除会话
-memory.clear("session-789").subscribe();
+        memory.
+
+clear("session-789").
+
+subscribe();
 ```
 
 ---
@@ -502,13 +523,13 @@ public class AiReportJob implements Job {
 
 单机开发（默认）只适合本地调试。多副本部署必须换掉以下组件：
 
-| 维度 | 开发默认 | 生产替换 |
-|------|----------|----------|
-| AgentStateStore | JsonFileAgentStateStore（本地 JSON） | RedisAgentStateStore / MysqlAgentStateStore |
-| Filesystem | LocalFilesystem（本机磁盘） | RemoteFilesystemSpec（共享 KV）或 SandboxFilesystemSpec |
-| Sandbox 快照 | NoopSnapshotSpec（容器销毁即丢） | OssSnapshotSpec / RedisSnapshotSpec |
-| Skill 来源 | workspace/skills/ | GitSkillRepository / MysqlSkillRepository |
-| 观测 | 无 tracing | OtelTracingMiddleware + OpenTelemetry |
+| 维度              | 开发默认                             | 生产替换                                               |
+|-----------------|----------------------------------|----------------------------------------------------|
+| AgentStateStore | JsonFileAgentStateStore（本地 JSON） | RedisAgentStateStore / MysqlAgentStateStore        |
+| Filesystem      | LocalFilesystem（本机磁盘）            | RemoteFilesystemSpec（共享 KV）或 SandboxFilesystemSpec |
+| Sandbox 快照      | NoopSnapshotSpec（容器销毁即丢）         | OssSnapshotSpec / RedisSnapshotSpec                |
+| Skill 来源        | workspace/skills/                | GitSkillRepository / MysqlSkillRepository          |
+| 观测              | 无 tracing                        | OtelTracingMiddleware + OpenTelemetry              |
 
 ### 一键分布式配置
 
@@ -552,28 +573,38 @@ DistributedStore store = RedisDistributedStore.fromJedis(jedis);
 
 // Docker 沙箱 + Redis 状态存储 + OSS 快照（大对象）
 HarnessAgent agent = HarnessAgent.builder()
-    .name("coding-agent")
-    .model("deepseek:deepseek-chat")
-    .workspace(Paths.get("/var/agentscope/workspace"))
-    .distributedStore(store)
-    .filesystem(new DockerFilesystemSpec()
-            .image("ubuntu:24.04")
-            .isolationScope(IsolationScope.SESSION))  // 每会话独立沙箱
-    .compaction(CompactionConfig.builder()
-            .triggerMessages(50)
-            .keepMessages(20)
-            .build())
-    .skillRepository(MysqlSkillRepository.builder(dataSource)
-            .writeable(false)              // 只读分发
-            .build())
-    .middlewares(List.of(new OtelTracingMiddleware()))
-    .build();
+        .name("coding-agent")
+        .model("deepseek:deepseek-chat")
+        .workspace(Paths.get("/var/agentscope/workspace"))
+        .distributedStore(store)
+        .filesystem(new DockerFilesystemSpec()
+                .image("ubuntu:24.04")
+                .isolationScope(IsolationScope.SESSION))  // 每会话独立沙箱
+        .compaction(CompactionConfig.builder()
+                .triggerMessages(50)
+                .keepMessages(20)
+                .build())
+        .skillRepository(MysqlSkillRepository.builder(dataSource)
+                .writeable(false)              // 只读分发
+                .build())
+        .middlewares(List.of(new OtelTracingMiddleware()))
+        .build();
 
 // HTTP handler 中 —— 每次调用传入 RuntimeContext
-agent.call(msg, RuntimeContext.builder()
-        .userId(tenantId + ":" + userId)
-        .sessionId(agentId + ":" + sessionId)
-        .build()).block();
+agent.
+
+call(msg, RuntimeContext.builder()
+        .
+
+userId(tenantId +":"+userId)
+        .
+
+sessionId(agentId +":"+sessionId)
+        .
+
+build()).
+
+block();
 ```
 
 ### OSS 混合存储
@@ -595,11 +626,11 @@ DistributedStore store = DistributedStore.builder()
 
 ### Filesystem 三种模式
 
-| 模式 | 配置 | shell | 适用 |
-|------|------|-------|------|
-| 本机 | 默认（不配） | ✅ | 单进程 / 信任环境 |
-| 共享存储 | RemoteFilesystemSpec(store) + IsolationScope.USER | ❌ | 多副本共享长期记忆 |
-| 沙箱 | DockerFilesystemSpec / K8sFilesystemSpec | ✅ 沙箱内 | 不可信代码 / 多用户隔离 |
+| 模式   | 配置                                                | shell | 适用            |
+|------|---------------------------------------------------|-------|---------------|
+| 本机   | 默认（不配）                                            | ✅     | 单进程 / 信任环境    |
+| 共享存储 | RemoteFilesystemSpec(store) + IsolationScope.USER | ❌     | 多副本共享长期记忆     |
+| 沙箱   | DockerFilesystemSpec / K8sFilesystemSpec          | ✅ 沙箱内 | 不可信代码 / 多用户隔离 |
 
 ### 生产 checklist
 
@@ -631,7 +662,8 @@ rinko.ai:
     image: ubuntu:24.04
 ```
 
-引入 `agentscope-extensions-redis` 依赖后，设置 `rinko.ai.distributed.store-type=redis` 即可自动创建 `DistributedStore` Bean。生产项目建议直接在 `@Configuration` 中显式构建 `HarnessAgent`，完整控制所有参数。
+引入 `agentscope-extensions-redis` 依赖后，设置 `rinko.ai.distributed.store-type=redis` 即可自动创建 `DistributedStore`
+Bean。生产项目建议直接在 `@Configuration` 中显式构建 `HarnessAgent`，完整控制所有参数。
 
 ---
 
@@ -684,8 +716,10 @@ rinko.ai.enabled: false
 
 **Q: 多用户并发安全吗？**
 
-安全。HarnessAgent 是单例，通过 `RuntimeContext` 的 `(userId, sessionId)` 自动隔离上下文，同一 `sessionId` 自动串行化，不同 session 完全并行。
+安全。HarnessAgent 是单例，通过 `RuntimeContext` 的 `(userId, sessionId)` 自动隔离上下文，同一 `sessionId` 自动串行化，不同
+session 完全并行。
 
 **Q: Agent 状态存在哪里？**
 
-默认存储在 `~/.agentscope/state/<agentName>/` 下（与工作区分离）。进程重启、sessionId 相同，对话历史自动恢复。生产环境建议切换为 Redis。
+默认存储在 `~/.agentscope/state/<agentName>/` 下（与工作区分离）。进程重启、sessionId 相同，对话历史自动恢复。生产环境建议切换为
+Redis。

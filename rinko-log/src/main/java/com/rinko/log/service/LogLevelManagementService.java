@@ -9,8 +9,6 @@ import com.rinko.log.repository.LogLevelConfigMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//import org.springframework.cloud.bus.BusProperties;
-//import org.springframework.cloud.bus.event.RemoteApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +19,8 @@ import java.util.Set;
 
 /**
  * 动态日志级别管理服务。
+ * 日志级别变更通过 ApplicationEvent 发布本地事件。
+ * TODO: 集成 Spring Cloud Bus 实现跨实例分布式日志级别同步。
  */
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,6 @@ public class LogLevelManagementService {
 
     private final LogLevelConfigMapper logLevelConfigMapper;
     private final ApplicationEventPublisher eventPublisher;
-//    private final BusProperties busProperties;
     private final SnowflakeIdGenerator idGenerator;
 
     /**
@@ -70,8 +69,7 @@ public class LogLevelManagementService {
             logLevelConfigMapper.updateById(config);
         }
 
-//        publishEvent(service, loggerName, level);
-
+        publishLocalEvent(service, loggerName, level);
         log.info("Log level changed: service={}, logger={}, level={}", service, loggerName, level);
         return config;
     }
@@ -91,36 +89,20 @@ public class LogLevelManagementService {
         }
 
         logLevelConfigMapper.deleteById(config.getId());
-//        publishEvent(service, loggerName, null);
+        publishLocalEvent(service, loggerName, null);
         log.info("Log level reset: service={}, logger={}", service, loggerName);
     }
 
-//    private void publishEvent(String targetService, String loggerName, String level) {
-//        LogLevelChangeEvent event = new LogLevelChangeEvent(
-//                this, busProperties.getId(), targetService, loggerName, level);
-//        eventPublisher.publishEvent(event);
-//    }
+    /**
+     * 发布本地日志级别变更事件，供 LogIngestionService.refreshLevelCache 等监听。
+     */
+    private void publishLocalEvent(String service, String loggerName, String level) {
+        eventPublisher.publishEvent(new LogLevelChangeEvent(service, loggerName, level));
+    }
 
-//    /**
-//     * 通过 Spring Cloud Bus 发布的日志级别变更事件。
-//     */
-//    public static class LogLevelChangeEvent extends RemoteApplicationEvent {
-//        private final String loggerName;
-//        private final String logLevel;
-//
-//        public LogLevelChangeEvent() {
-//            this.loggerName = null;
-//            this.logLevel = null;
-//        }
-//
-//        public LogLevelChangeEvent(Object source, String originService,
-//                                     String destinationService, String loggerName, String logLevel) {
-//            super(source, originService, destinationService);
-//            this.loggerName = loggerName;
-//            this.logLevel = logLevel;
-//        }
-//
-//        public String getLoggerName() { return loggerName; }
-//        public String getLogLevel() { return logLevel; }
-//    }
+    /**
+     * 日志级别变更本地事件。TODO: 改用 Spring Cloud Bus RemoteApplicationEvent 实现跨实例同步。
+     */
+    public record LogLevelChangeEvent(String service, String loggerName, String logLevel) {
+    }
 }

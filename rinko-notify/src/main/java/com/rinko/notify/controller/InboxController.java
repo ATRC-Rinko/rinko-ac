@@ -24,8 +24,11 @@ public class InboxController {
     @GetMapping
     @Operation(summary = "查询站内信")
     public ApiResponse<List<NotificationHistoryVO>> getInbox(
-            @RequestParam String userId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestParam(required = false) Boolean isRead) {
+        if (userId == null) {
+            return ApiResponse.success(List.of());
+        }
         return ApiResponse.success(notifyService.getInbox(userId, isRead).stream()
                 .map(NotificationHistoryVO::from)
                 .toList());
@@ -33,7 +36,10 @@ public class InboxController {
 
     @GetMapping("/unread-count")
     @Operation(summary = "未读消息数")
-    public ApiResponse<UnreadCountVO> getUnreadCount(@RequestParam String userId) {
+    public ApiResponse<UnreadCountVO> getUnreadCount(@RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null) {
+            return ApiResponse.success(new UnreadCountVO(0));
+        }
         return ApiResponse.success(new UnreadCountVO(notifyService.getUnreadCount(userId)));
     }
 

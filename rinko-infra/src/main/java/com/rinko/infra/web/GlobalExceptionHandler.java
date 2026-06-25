@@ -63,15 +63,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpServletResponse response) {
-        log.error("Validation error (MethodArgumentNotValid)", ex);
         String detail = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining(", "));
+        log.warn("Validation error: {}", detail);
         response.setStatus(400);
         response.setContentType("application/problem+json");
         return ProblemDetail.builder("Bad Request", 400)
                 .type("/errors/validation-error")
-                .detail(detail)
+                .detail("Request validation failed")
                 .build();
     }
 

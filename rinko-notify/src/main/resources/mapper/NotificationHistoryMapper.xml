@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.rinko.notify.repository.NotificationHistoryMapper">
-
     <insert id="batchInsert">
-        INSERT INTO notification_history (id, channel, template_code, recipient, subject, content, status, created_at) VALUES
+        INSERT INTO notification_history (id, channel, template_code, recipient, subject, content, status, is_read,
+        created_at) VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.id}, #{item.channel}, #{item.templateCode}, #{item.recipient},
-             #{item.subject}, #{item.content}, #{item.status}, NOW())
+            #{item.subject}, #{item.content}, #{item.status}, #{item.isRead}, NOW())
         </foreach>
     </insert>
-
 </mapper>

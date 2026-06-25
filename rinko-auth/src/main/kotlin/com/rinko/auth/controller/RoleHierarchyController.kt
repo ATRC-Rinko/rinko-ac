@@ -1,6 +1,6 @@
 package com.rinko.auth.controller
 
-import com.rinko.auth.entity.RoleHierarchy
+import com.rinko.auth.dto.RoleHierarchyVO
 import com.rinko.auth.service.RoleHierarchyService
 import com.rinko.infra.dto.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
@@ -43,16 +43,18 @@ class RoleHierarchyController(
 
     @GetMapping("/roles/{roleId}/descendants")
     @Operation(summary = "查询角色的所有后代")
-    fun getDescendants(@PathVariable roleId: Long): Mono<ApiResponse<List<RoleHierarchy>>> {
+    fun getDescendants(@PathVariable roleId: Long): Mono<ApiResponse<List<RoleHierarchyVO>>> {
         return roleHierarchyService.getDescendants(roleId)
+            .map { RoleHierarchyVO(it.ancestor, it.descendant, it.depth) }
             .collectList()
             .map { ApiResponse.success(it) }
     }
 
     @GetMapping("/roles/{roleId}/ancestors")
     @Operation(summary = "查询角色的所有祖先")
-    fun getAncestors(@PathVariable roleId: Long): Mono<ApiResponse<List<RoleHierarchy>>> {
+    fun getAncestors(@PathVariable roleId: Long): Mono<ApiResponse<List<RoleHierarchyVO>>> {
         return roleHierarchyService.getAncestors(roleId)
+            .map { RoleHierarchyVO(it.ancestor, it.descendant, it.depth) }
             .collectList()
             .map { ApiResponse.success(it) }
     }

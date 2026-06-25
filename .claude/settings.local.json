@@ -114,7 +114,8 @@
       "Bash(./mvnw dependency:resolve -pl rinko-channel -am)",
       "Bash(jar --file=C:/Users/cyfer/.m2/repository/org/springframework/boot/spring-boot-actuator/4.0.5/spring-boot-actuator-4.0.5.jar --describe-module)",
       "PowerShell(.\\\\mvnw compile -pl rinko-channel-qq -am -DskipTests 2>&1)",
-      "PowerShell(.\\\\mvnw.cmd compile -q 2>&1)"
+      "PowerShell(.\\\\mvnw.cmd compile -q 2>&1)",
+      "Bash(powershell *)"
     ]
   }
 }

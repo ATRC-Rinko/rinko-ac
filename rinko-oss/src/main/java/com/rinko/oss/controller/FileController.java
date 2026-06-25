@@ -5,11 +5,11 @@ import com.rinko.infra.dto.PageResponse;
 import com.rinko.oss.model.dto.CompleteMultipartUploadRequest;
 import com.rinko.oss.model.dto.CreateDirectoryRequest;
 import com.rinko.oss.model.dto.InitMultipartUploadRequest;
+import com.rinko.oss.model.entity.FileMetadata;
+import com.rinko.oss.model.vo.FileMetadataVO;
 import com.rinko.oss.model.vo.MultipartInitVO;
 import com.rinko.oss.model.vo.PartUploadVO;
 import com.rinko.oss.model.vo.PresignUrlVO;
-import com.rinko.oss.model.entity.FileMetadata;
-import com.rinko.oss.model.vo.FileMetadataVO;
 import com.rinko.oss.service.FileService;
 import com.rinko.oss.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +34,9 @@ import java.util.List;
 @Tag(name = "File Management", description = "文件管理接口")
 public class FileController {
 
+    private static final long MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100MB
+    private static final String PATH_TRAVERSAL_PATTERN = ".*\\.\\.[/\\\\].*";
+
     private final FileService fileService;
 
     @PostMapping("/upload")
@@ -42,6 +45,10 @@ public class FileController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "parentId", required = false) Long parentId,
             HttpServletResponse response) throws IOException {
+        if (file.getSize() > MAX_UPLOAD_SIZE) {
+            response.setStatus(413); // Payload Too Large
+            throw new IllegalArgumentException("File size exceeds maximum allowed: " + MAX_UPLOAD_SIZE + " bytes");
+        }
         var meta = fileService.upload(file.getInputStream(),
                 file.getOriginalFilename(), file.getContentType(), parentId);
         response.setStatus(201);
@@ -53,10 +60,22 @@ public class FileController {
     public ResponseEntity<Resource> download(@PathVariable long fileId) {
         FileMetadata meta = fileService.getMetadata(fileId);
         InputStream stream = fileService.download(fileId);
+        String safeFilename = sanitizeFilename(meta.getOriginalName());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(meta.getContentType() != null ? meta.getContentType() : "application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + meta.getOriginalName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeFilename + "\"")
                 .body(new InputStreamResource(stream));
+    }
+
+    /**
+     * Sanitize filename for use in HTTP headers — strip quotes, backslashes, and newlines.
+     */
+    private String sanitizeFilename(String name) {
+        if (name == null) return "download";
+        return name.replace("\"", "")
+                .replace("\\", "")
+                .replace("\n", "")
+                .replace("\r", "");
     }
 
     @GetMapping("/presign/{fileId}")
@@ -98,6 +117,10 @@ public class FileController {
     @GetMapping("/download/by-key")
     @Operation(summary = "通过存储路径下载")
     public ResponseEntity<Resource> downloadByKey(@RequestParam String key) {
+        // Path traversal prevention
+        if (key.matches(PATH_TRAVERSAL_PATTERN) || key.startsWith("/") || key.contains("\\")) {
+            return ResponseEntity.badRequest().build();
+        }
         FileMetadata meta = fileService.getMetadata(Long.parseLong(key.split("/")[0]));
         InputStream stream = fileService.downloadByKey(key);
         return ResponseEntity.ok()

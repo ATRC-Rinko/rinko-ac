@@ -35,7 +35,8 @@ public record ChatResponse(
             String toolName,
             Map<String, Object> arguments,
             String result
-    ) {}
+    ) {
+    }
 
     /**
      * Token 用量统计。
@@ -44,5 +45,6 @@ public record ChatResponse(
             int promptTokens,
             int completionTokens,
             int totalTokens
-    ) {}
+    ) {
+    }
 }

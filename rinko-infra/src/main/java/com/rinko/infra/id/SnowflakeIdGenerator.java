@@ -9,7 +9,8 @@ import java.util.Enumeration;
 
 /**
  * 雪花算法 ID 生成器。
- * workerId 基于本机 MAC 地址自动计算。
+ * Worker ID 优先级：环境变量 SNOWFLAKE_WORKER_ID > MAC 地址哈希 > 随机数。
+ * 在 Docker/K8s 环境中应通过 SNOWFLAKE_WORKER_ID 环境变量显式分配，避免 MAC 地址碰撞。
  */
 @Component
 public class SnowflakeIdGenerator {
@@ -33,7 +34,37 @@ public class SnowflakeIdGenerator {
     private long lastTimestamp = -1L;
 
     public SnowflakeIdGenerator() {
-        this(computeWorkerId(), 1);
+        this(resolveWorkerId(), resolveDatacenterId());
+    }
+
+    /**
+     * Resolve worker ID: env var SNOWFLAKE_WORKER_ID → MAC address hash → random.
+     */
+    private static long resolveWorkerId() {
+        String envId = System.getenv("SNOWFLAKE_WORKER_ID");
+        if (envId != null) {
+            try {
+                long id = Long.parseLong(envId.trim());
+                if (id >= 0 && id <= MAX_WORKER_ID) return id;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return computeWorkerIdFromMac();
+    }
+
+    /**
+     * Resolve datacenter ID: env var SNOWFLAKE_DATACENTER_ID → default 1.
+     */
+    private static long resolveDatacenterId() {
+        String envId = System.getenv("SNOWFLAKE_DATACENTER_ID");
+        if (envId != null) {
+            try {
+                long id = Long.parseLong(envId.trim());
+                if (id >= 0 && id <= MAX_DATACENTER_ID) return id;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 1;
     }
 
     public SnowflakeIdGenerator(long workerId, long datacenterId) {

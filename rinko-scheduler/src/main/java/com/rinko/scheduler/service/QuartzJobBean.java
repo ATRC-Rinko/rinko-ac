@@ -1,9 +1,9 @@
 package com.rinko.scheduler.service;
 
+import com.rinko.scheduler.executor.JobExecutor;
 import com.rinko.scheduler.model.entity.SchedulerDependency;
 import com.rinko.scheduler.model.entity.SchedulerExecution;
 import com.rinko.scheduler.model.entity.SchedulerJob;
-import com.rinko.scheduler.executor.JobExecutor;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class QuartzJobBean implements Job {
     @Override
     public void execute(JobExecutionContext context) {
         long jobId = Long.parseLong(context.getJobDetail().getJobDataMap().getString("jobId"));
-        SchedulerJob job = schedulerService.listJobs().stream().filter(j -> j.getId() == jobId).findFirst().orElse(null);
+        SchedulerJob job = schedulerService.getJobById(jobId);
         if (job == null) return;
 
         SchedulerExecution exec = schedulerService.recordStart(jobId);
@@ -48,7 +48,10 @@ public class QuartzJobBean implements Job {
             } catch (Exception e) {
                 log.warn("Job {} failed (attempt {}/{}): {}", job.getName(), i + 1, maxRetries + 1, e.getMessage());
                 if (i < maxRetries) {
-                    try { Thread.sleep((long) Math.pow(i + 1, 2) * 1000L); } catch (InterruptedException ignored) {}
+                    try {
+                        Thread.sleep((long) Math.pow(i + 1, 2) * 1000L);
+                    } catch (InterruptedException ignored) {
+                    }
                     exec.setRetryCount(i + 1);
                 } else {
                     schedulerService.recordEnd(exec, "FAILED", e.getMessage());

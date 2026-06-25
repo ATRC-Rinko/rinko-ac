@@ -3,10 +3,10 @@ package com.rinko.gateway.filter
 import com.rinko.gateway.config.GatewayAuthProperties
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import org.mockito.Mockito
+import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
-import org.springframework.cloud.gateway.filter.GatewayFilterChain
-import org.mockito.Mockito
 import reactor.core.publisher.Mono
 
 class JwtAuthFilterTest : StringSpec({

@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 多数据源路由抽象类。
  * 子类实现 {@link #determineCurrentLookupKey()} 来决定当前请求使用哪个数据源。
+ * 使用 ThreadLocal 确保数据源查找键的线程隔离。
  */
 public abstract class AbstractRoutingDataSource implements DataSource {
 
@@ -21,6 +22,7 @@ public abstract class AbstractRoutingDataSource implements DataSource {
 
     private DataSource defaultTargetDataSource;
     private final Map<Object, DataSource> targetDataSources = new ConcurrentHashMap<>();
+    private final ThreadLocal<Object> lookupKeyHolder = new ThreadLocal<>();
 
     /**
      * 决定当前使用的数据源 key。子类必须实现此方法。
@@ -28,6 +30,20 @@ public abstract class AbstractRoutingDataSource implements DataSource {
      * @return 当前数据源查找键
      */
     protected abstract Object determineCurrentLookupKey();
+
+    /**
+     * 设置当前线程的数据源查找键。典型用法：在请求拦截器或 AOP 切面中调用。
+     */
+    public void setCurrentLookupKey(Object key) {
+        lookupKeyHolder.set(key);
+    }
+
+    /**
+     * 清除当前线程的数据源查找键，防止内存泄漏。
+     */
+    public void clearCurrentLookupKey() {
+        lookupKeyHolder.remove();
+    }
 
     public void setDefaultTargetDataSource(DataSource defaultTargetDataSource) {
         this.defaultTargetDataSource = defaultTargetDataSource;
@@ -38,7 +54,11 @@ public abstract class AbstractRoutingDataSource implements DataSource {
     }
 
     private DataSource determineDataSource() {
-        Object lookupKey = determineCurrentLookupKey();
+        // ThreadLocal takes priority for explicit per-request routing
+        Object lookupKey = lookupKeyHolder.get();
+        if (lookupKey == null) {
+            lookupKey = determineCurrentLookupKey();
+        }
         if (lookupKey == null) {
             return defaultTargetDataSource;
         }

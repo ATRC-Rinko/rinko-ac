@@ -1,11 +1,13 @@
 package com.rinko.auth.controller
 
-import com.rinko.auth.entity.Permission
+import com.rinko.auth.dto.CreatePermissionRequest
+import com.rinko.auth.dto.PermissionVO
+import com.rinko.auth.dto.UpdatePermissionRequest
 import com.rinko.auth.service.PermissionService
 import com.rinko.infra.dto.ApiResponse
-import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ServerWebExchange
@@ -20,19 +22,22 @@ class PermissionController(
 
     @GetMapping
     @Operation(summary = "查询所有权限")
-    fun listPermissions(): Mono<ApiResponse<List<Permission>>> {
+    fun listPermissions(): Mono<ApiResponse<List<PermissionVO>>> {
         return permissionService.listPermissions()
+            .map { PermissionVO(it.id, it.code, it.description) }
             .collectList()
             .map { ApiResponse.success(it) }
     }
 
     @PostMapping
     @Operation(summary = "创建权限")
-    fun createPermission(@RequestBody body: Map<String, String>, exchange: ServerWebExchange): Mono<ApiResponse<Permission>> {
-        val code = body["code"]
-            ?: throw ValidationException("code is required")
+    fun createPermission(
+        @Valid @RequestBody req: CreatePermissionRequest,
+        exchange: ServerWebExchange
+    ): Mono<ApiResponse<PermissionVO>> {
         exchange.response.statusCode = HttpStatus.valueOf(201)
-        return permissionService.createPermission(code, body["description"])
+        return permissionService.createPermission(req.code, req.description)
+            .map { PermissionVO(it.id, it.code, it.description) }
             .map { ApiResponse.success(it) }
     }
 
@@ -40,11 +45,10 @@ class PermissionController(
     @Operation(summary = "更新权限")
     fun updatePermission(
         @PathVariable permissionId: Long,
-        @RequestBody body: Map<String, String>
-    ): Mono<ApiResponse<Permission>> {
-        val code = body["code"]
-            ?: throw ValidationException("code is required")
-        return permissionService.updatePermission(permissionId, code, body["description"])
+        @Valid @RequestBody req: UpdatePermissionRequest
+    ): Mono<ApiResponse<PermissionVO>> {
+        return permissionService.updatePermission(permissionId, req.code, req.description)
+            .map { PermissionVO(it.id, it.code, it.description) }
             .map { ApiResponse.success(it) }
     }
 

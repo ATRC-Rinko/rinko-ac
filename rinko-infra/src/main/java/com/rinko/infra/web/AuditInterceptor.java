@@ -35,7 +35,7 @@ public class AuditInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
-            Object handler, Exception ex) {
+                                Object handler, Exception ex) {
         Long startTime = (Long) request.getAttribute(START_TIME_KEY);
         long duration = startTime != null ? System.currentTimeMillis() - startTime : -1;
         log.info("Request completed: {} {} status={} duration={}ms",

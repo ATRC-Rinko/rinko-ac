@@ -1,11 +1,9 @@
 package com.rinko.gateway.filter
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rinko.gateway.config.GatewayAuthProperties
 import com.rinko.infra.dto.ProblemDetail
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
-import org.apache.skywalking.apm.toolkit.trace.TraceContext
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.GlobalFilter
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
+import tools.jackson.databind.ObjectMapper
 import java.nio.charset.StandardCharsets
 
 @Component
@@ -56,6 +55,7 @@ class JwtAuthFilter(
             val claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
 
             val userId = (claims["userId"] as Number).toLong()
+
             @Suppress("UNCHECKED_CAST")
             val roles = claims["roles"] as? List<String> ?: emptyList()
 

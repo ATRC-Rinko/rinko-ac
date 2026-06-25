@@ -2,14 +2,15 @@ package com.rinko.notify.controller;
 
 import com.rinko.infra.dto.ApiResponse;
 import com.rinko.notify.model.dto.SendBatchRequest;
-import com.rinko.notify.model.vo.SendBatchVo;
 import com.rinko.notify.model.dto.SendNotificationRequest;
 import com.rinko.notify.model.vo.NotificationHistoryVO;
+import com.rinko.notify.model.vo.SendBatchVo;
 import com.rinko.notify.push.NotificationPushService;
 import com.rinko.notify.service.NotifyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -30,7 +31,7 @@ public class NotifyController {
 
     @PostMapping("/send")
     @Operation(summary = "发送通知")
-    public ApiResponse<NotificationHistoryVO> send(@RequestBody SendNotificationRequest req, HttpServletResponse response) {
+    public ApiResponse<NotificationHistoryVO> send(@Valid @RequestBody SendNotificationRequest req, HttpServletResponse response) {
         Map<String, String> variables = req.variables() != null ? req.variables() : Map.of();
         var history = notifyService.send(req.channel(), req.templateCode(), req.recipient(), variables);
         response.setStatus(202);
@@ -39,7 +40,7 @@ public class NotifyController {
 
     @PostMapping("/send-batch")
     @Operation(summary = "批量发送通知")
-    public ApiResponse<SendBatchVo> sendBatch(@RequestBody SendBatchRequest req, HttpServletResponse response) {
+    public ApiResponse<SendBatchVo> sendBatch(@Valid @RequestBody SendBatchRequest req, HttpServletResponse response) {
         Map<String, String> variables = req.variables() != null ? req.variables() : Map.of();
         var result = notifyService.sendBatch(req.channel(), req.templateCode(), req.recipients(), variables);
         response.setStatus(202);
@@ -49,7 +50,10 @@ public class NotifyController {
 
     @GetMapping("/stream")
     @Operation(summary = "SSE 实时通知流")
-    public SseEmitter stream(@RequestParam String userId) {
+    public SseEmitter stream(@RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("X-User-Id header is required");
+        }
         return pushService.createSseEmitter(userId);
     }
 }

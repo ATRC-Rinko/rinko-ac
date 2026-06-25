@@ -7,15 +7,17 @@ import com.rinko.log.repository.ClickHouseLogRepository;
 import com.rinko.log.repository.LogLevelConfigMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -27,17 +29,19 @@ public class LogIngestionService {
     private static final Logger log = LoggerFactory.getLogger(LogIngestionService.class);
     private static final Map<String, Integer> LEVEL_ORDINAL = Map.of(
             "TRACE", 0, "DEBUG", 1, "INFO", 2, "WARN", 3, "ERROR", 4);
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
+    private static final int MAX_BATCH_SIZE = 1000;
 
     private final ClickHouseLogRepository clickHouseLogRepository;
     private final LogProperties logProperties;
     private final LogLevelConfigMapper logLevelConfigMapper;
-    private final List<LogMessage> buffer = Collections.synchronizedList(new ArrayList<>());
+    private final BlockingQueue<LogMessage> buffer = new LinkedBlockingQueue<>(10000);
 
     private volatile Map<String, String> levelCache = new ConcurrentHashMap<>();
 
     public LogIngestionService(ClickHouseLogRepository clickHouseLogRepository,
-                                LogProperties logProperties,
-                                LogLevelConfigMapper logLevelConfigMapper) {
+                               LogProperties logProperties,
+                               LogLevelConfigMapper logLevelConfigMapper) {
         this.clickHouseLogRepository = clickHouseLogRepository;
         this.logProperties = logProperties;
         this.logLevelConfigMapper = logLevelConfigMapper;
@@ -80,18 +84,16 @@ public class LogIngestionService {
      */
     @Scheduled(fixedRate = 5000)
     public void flush() {
-        synchronized (buffer) {
-            if (buffer.isEmpty()) {
-                return;
-            }
-            List<LogMessage> batch = new ArrayList<>(buffer);
-            buffer.clear();
-            try {
-                clickHouseLogRepository.batchInsert(batch);
-                log.debug("Flushed {} log messages to ClickHouse", batch.size());
-            } catch (Exception e) {
-                log.error("Failed to flush logs to ClickHouse: {}", e.getMessage(), e);
-            }
+        List<LogMessage> batch = new ArrayList<>();
+        buffer.drainTo(batch, MAX_BATCH_SIZE);
+        if (batch.isEmpty()) {
+            return;
+        }
+        try {
+            clickHouseLogRepository.batchInsert(batch);
+            log.debug("Flushed {} log messages to ClickHouse", batch.size());
+        } catch (Exception e) {
+            log.error("Failed to flush logs to ClickHouse: {}", e.getMessage(), e);
         }
     }
 
@@ -100,6 +102,17 @@ public class LogIngestionService {
      */
     @Scheduled(fixedRate = 30000)
     public void refreshLevelCache() {
+        doRefreshLevelCache();
+    }
+
+    /** 监听日志级别变更事件，立即刷新缓存（无需等待轮询）。 */
+    @EventListener
+    public void onLogLevelChange(LogLevelManagementService.LogLevelChangeEvent event) {
+        log.debug("Log level change detected via event, refreshing cache immediately");
+        doRefreshLevelCache();
+    }
+
+    private void doRefreshLevelCache() {
         try {
             List<LogLevelConfig> configs = logLevelConfigMapper.selectList(null);
             Map<String, String> newCache = new ConcurrentHashMap<>();
@@ -148,7 +161,11 @@ public class LogIngestionService {
     }
 
     private LogMessage readLogMessage(String message) {
-        JsonMapper build = JsonMapper.builder().build();
-        return build.readValue(message, LogMessage.class);
+        try {
+            return JSON_MAPPER.readValue(message, LogMessage.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse log message: {}", e.getMessage());
+            return null;
+        }
     }
 }

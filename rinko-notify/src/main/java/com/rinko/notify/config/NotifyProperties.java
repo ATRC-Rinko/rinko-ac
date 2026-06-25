@@ -16,17 +16,24 @@ public class NotifyProperties {
 
     private Channels channels = new Channels();
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class Channels {
         private ChannelConfig email = new ChannelConfig(true);
         private ChannelConfig sms = new ChannelConfig(false);
         private ChannelConfig inApp = new ChannelConfig(true);
     }
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class ChannelConfig {
         private boolean enabled;
-        public ChannelConfig() {}
-        public ChannelConfig(boolean enabled) { this.enabled = enabled; }
+
+        public ChannelConfig() {
+        }
+
+        public ChannelConfig(boolean enabled) {
+            this.enabled = enabled;
+        }
     }
 }

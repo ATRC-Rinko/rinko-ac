@@ -32,8 +32,14 @@ public class NotifyConsumer {
         this.notifyService = notifyService;
     }
 
+    private static final int MAX_MESSAGE_SIZE = 64 * 1024; // 64KB max per message
+
     @RabbitListener(queues = "notify.queue")
     public void handle(String msg) {
+        if (msg == null || msg.length() > MAX_MESSAGE_SIZE) {
+            log.warn("Rejected oversized message: {} bytes", msg != null ? msg.length() : 0);
+            return;
+        }
         NotifyMessageDto message = objectMapper.readValue(msg, NotifyMessageDto.class);
         NotificationChannel channel = channels.get(message.channel());
         if (channel == null) {

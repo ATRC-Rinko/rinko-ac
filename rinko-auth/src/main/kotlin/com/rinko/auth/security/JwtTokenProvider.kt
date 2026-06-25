@@ -80,6 +80,7 @@ class JwtTokenProvider(
     fun getAuthentication(token: String): Authentication {
         val claims = parseToken(token).payload
         val username = claims.subject
+
         @Suppress("UNCHECKED_CAST")
         val roles = claims["roles"] as? List<String> ?: emptyList()
         val authorities = roles.map { SimpleGrantedAuthority("ROLE_$it") }

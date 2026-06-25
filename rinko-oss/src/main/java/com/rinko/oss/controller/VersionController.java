@@ -22,7 +22,10 @@ public class VersionController {
 
     @GetMapping("/{fileId}/versions")
     @Operation(summary = "列出文件版本")
-    public ApiResponse<List<FileVersionVO>> listVersions(@PathVariable long fileId) {
+    public ApiResponse<List<FileVersionVO>> listVersions(
+            @PathVariable long fileId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(fileService.listVersions(fileId).stream()
                 .map(FileVersionVO::from)
                 .toList());

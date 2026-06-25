@@ -92,10 +92,10 @@ public class InMemoryKnowledgeBaseService implements KnowledgeBaseService {
         }
         return """
                 请根据以下参考资料回答问题。如果参考资料不足以回答，请如实说明。
-
+                
                 ## 参考资料
                 %s
-
+                
                 ## 问题
                 %s
                 """.formatted(context, question);

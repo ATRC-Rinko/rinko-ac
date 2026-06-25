@@ -30,10 +30,10 @@ public class DefaultAgentOrchestrator implements AgentOrchestrator {
             1. Analyze the user's task and decompose it into sub-tasks.
             2. For each sub-task, specify which sub-agent should handle it.
             3. Synthesize the results into a coherent final response.
-
+            
             Available sub-agents:
             %s
-
+            
             Format your response as a clear, structured answer that addresses the user's original request.
             """;
 

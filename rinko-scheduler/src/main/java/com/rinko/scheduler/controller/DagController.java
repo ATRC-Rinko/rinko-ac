@@ -39,7 +39,10 @@ public class DagController {
 
     @GetMapping("/jobs/{jobId}/downstream")
     @Operation(summary = "查询下游任务")
-    public ApiResponse<List<SchedulerDependencyVO>> getDownstream(@PathVariable long jobId) {
+    public ApiResponse<List<SchedulerDependencyVO>> getDownstream(
+            @PathVariable long jobId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(schedulerService.getDownstream(jobId).stream()
                 .map(SchedulerDependencyVO::from)
                 .toList());
@@ -47,7 +50,10 @@ public class DagController {
 
     @GetMapping("/jobs/{jobId}/upstream")
     @Operation(summary = "查询上游任务")
-    public ApiResponse<List<SchedulerDependencyVO>> getUpstream(@PathVariable long jobId) {
+    public ApiResponse<List<SchedulerDependencyVO>> getUpstream(
+            @PathVariable long jobId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(schedulerService.getUpstream(jobId).stream()
                 .map(SchedulerDependencyVO::from)
                 .toList());

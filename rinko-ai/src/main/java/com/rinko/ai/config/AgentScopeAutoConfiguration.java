@@ -91,7 +91,7 @@ public class AgentScopeAutoConfiguration {
                     .build();
             default -> throw new IllegalStateException(
                     "Unsupported model provider: " + provider
-                    + ". Supported: dashscope:, openai:, deepseek:, anthropic:.");
+                            + ". Supported: dashscope:, openai:, deepseek:, anthropic:.");
         };
     }
 

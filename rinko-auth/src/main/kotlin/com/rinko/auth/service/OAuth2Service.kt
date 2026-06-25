@@ -1,16 +1,16 @@
 package com.rinko.auth.service
 
-import com.rinko.auth.entity.OAuth2Client
 import com.rinko.auth.repository.OAuth2ClientRepository
 import com.rinko.auth.security.JwtTokenProvider
 import com.rinko.infra.exception.UnauthorizedException
 import com.rinko.infra.exception.ValidationException
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.security.SecureRandom
-import java.util.Base64
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
@@ -100,16 +100,21 @@ class OAuth2Service(
                 authorizationCodes.remove(code)
                 val userId = entry.userId ?: 0L
                 val username = "oauth2_user_${entry.clientId}"
-                val accessToken = jwtTokenProvider.generateAccessToken(userId, username, entry.scopes.split(",").filter { it.isNotBlank() })
+                val accessToken = jwtTokenProvider.generateAccessToken(
+                    userId,
+                    username,
+                    entry.scopes.split(",").filter { it.isNotBlank() })
                 val refreshToken = jwtTokenProvider.generateRefreshToken(userId, username)
                 val expiresIn = 900L
-                Mono.just(mapOf(
-                    "access_token" to accessToken,
-                    "token_type" to "Bearer",
-                    "expires_in" to expiresIn,
-                    "refresh_token" to refreshToken,
-                    "scope" to entry.scopes
-                ))
+                Mono.just(
+                    mapOf(
+                        "access_token" to accessToken,
+                        "token_type" to "Bearer",
+                        "expires_in" to expiresIn,
+                        "refresh_token" to refreshToken,
+                        "scope" to entry.scopes
+                    )
+                )
             }
     }
 
@@ -133,15 +138,31 @@ class OAuth2Service(
                     return@flatMap Mono.error<Map<String, Any>>(UnauthorizedException("client_credentials grant not allowed for this client"))
                 }
                 val scopes = scope ?: client.scopes
-                val accessToken = jwtTokenProvider.generateAccessToken(client.id, client.clientId, scopes.split(",").filter { it.isNotBlank() })
+                val accessToken = jwtTokenProvider.generateAccessToken(
+                    client.id,
+                    client.clientId,
+                    scopes.split(",").filter { it.isNotBlank() })
                 val expiresIn = client.accessTokenTtlSeconds.toLong()
-                Mono.just(mapOf(
-                    "access_token" to accessToken,
-                    "token_type" to "Bearer",
-                    "expires_in" to expiresIn,
-                    "scope" to scopes
-                ))
+                Mono.just(
+                    mapOf(
+                        "access_token" to accessToken,
+                        "token_type" to "Bearer",
+                        "expires_in" to expiresIn,
+                        "scope" to scopes
+                    )
+                )
             }
+    }
+
+    /** 定时清理过期的授权码，每 5 分钟执行一次。 */
+    @Scheduled(fixedRate = 300_000)
+    fun cleanupExpiredCodes() {
+        val now = System.currentTimeMillis()
+        val expired = authorizationCodes.entries.filter { it.value.expiresAt < now }
+        expired.forEach { authorizationCodes.remove(it.key) }
+        if (expired.isNotEmpty()) {
+            log.debug("Cleaned up {} expired authorization codes", expired.size)
+        }
     }
 
     private fun generateAuthorizationCode(): String {

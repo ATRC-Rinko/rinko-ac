@@ -12,10 +12,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rinko.log")
 public class LogProperties {
 
-    /** 日志采样率 0.0-1.0，默认 1.0（全量），WARN/ERROR 始终保留 */
+    /**
+     * 日志采样率 0.0-1.0，默认 1.0（全量），WARN/ERROR 始终保留
+     */
     private double samplingRate = 1.0;
 
-    /** ClickHouse 连接配置 */
+    /**
+     * ClickHouse 连接配置
+     */
     private ClickHouse clickhouse = new ClickHouse();
 
     @Getter

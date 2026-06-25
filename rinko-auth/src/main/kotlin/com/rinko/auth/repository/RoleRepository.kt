@@ -11,17 +11,21 @@ interface RoleRepository : ReactiveCrudRepository<Role, Long> {
 
     fun findByName(name: String): Mono<Role>
 
-    @Query("""
+    @Query(
+        """
         SELECT r.* FROM roles r
         INNER JOIN user_roles ur ON r.id = ur.role_id
         WHERE ur.user_id = :userId
-    """)
+    """
+    )
     fun findByUserId(userId: Long): Flux<Role>
 
-    @Query("""
+    @Query(
+        """
         SELECT p.* FROM permissions p
         INNER JOIN role_permissions rp ON p.id = rp.permission_id
         WHERE rp.role_id = :roleId
-    """)
+    """
+    )
     fun findPermissionsByRoleId(roleId: Long): Flux<Permission>
 }

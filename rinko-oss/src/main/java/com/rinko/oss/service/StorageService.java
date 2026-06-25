@@ -21,5 +21,6 @@ public interface StorageService {
 
     void abortMultipartUpload(String key, String uploadId);
 
-    record PartETag(int partNumber, String etag) {}
+    record PartETag(int partNumber, String etag) {
+    }
 }

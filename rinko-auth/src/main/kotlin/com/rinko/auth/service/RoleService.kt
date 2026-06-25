@@ -133,13 +133,14 @@ class RoleService(
             .flatMap { roleId ->
                 roleRepository.findById(roleId)
                     .switchIfEmpty(Mono.error(NotFoundException("Role not found: $roleId")))
-                    .then(databaseClient.sql(
-                        "INSERT INTO user_roles (user_id, role_id) VALUES (:userId, :roleId) ON CONFLICT DO NOTHING"
-                    )
-                        .bind("userId", userId)
-                        .bind("roleId", roleId)
-                        .fetch()
-                        .rowsUpdated()
+                    .then(
+                        databaseClient.sql(
+                            "INSERT INTO user_roles (user_id, role_id) VALUES (:userId, :roleId) ON CONFLICT DO NOTHING"
+                        )
+                            .bind("userId", userId)
+                            .bind("roleId", roleId)
+                            .fetch()
+                            .rowsUpdated()
                     )
             }
             .then(Mono.fromRunnable {

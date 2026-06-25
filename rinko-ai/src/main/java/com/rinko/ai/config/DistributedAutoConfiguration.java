@@ -74,7 +74,7 @@ public class DistributedAutoConfiguration {
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(
                     "Failed to create Redis DistributedStore. "
-                    + "Ensure agentscope-extensions-redis and jedis are on the classpath.", e);
+                            + "Ensure agentscope-extensions-redis and jedis are on the classpath.", e);
         }
     }
 }

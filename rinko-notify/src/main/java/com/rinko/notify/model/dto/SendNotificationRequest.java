@@ -2,7 +2,6 @@ package com.rinko.notify.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.List;
 import java.util.Map;
 
 @Schema(description = "发送通知请求")

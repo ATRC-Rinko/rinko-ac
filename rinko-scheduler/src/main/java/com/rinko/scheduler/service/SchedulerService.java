@@ -2,6 +2,7 @@ package com.rinko.scheduler.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.rinko.infra.exception.InternalException;
+import com.rinko.infra.exception.ValidationException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.scheduler.model.entity.SchedulerDependency;
 import com.rinko.scheduler.model.entity.SchedulerExecution;
@@ -32,8 +33,15 @@ public class SchedulerService {
         return jobMapper.selectList(Wrappers.<SchedulerJob>lambdaQuery().orderByAsc(SchedulerJob::getName));
     }
 
+    public SchedulerJob getJobById(long id) {
+        return jobMapper.selectById(id);
+    }
+
     @Transactional
     public SchedulerJob createJob(SchedulerJob job) {
+        if (job.getCronExpression() != null && !org.quartz.CronExpression.isValidExpression(job.getCronExpression())) {
+            throw new ValidationException("Invalid CRON expression: " + job.getCronExpression());
+        }
         job.setId(idGenerator.nextId());
         jobMapper.insert(job);
         if (job.isEnabled() && job.getCronExpression() != null) {
@@ -46,7 +54,8 @@ public class SchedulerService {
     public void deleteJob(long id) {
         try {
             quartzScheduler.deleteJob(JobKey.jobKey("job-" + id));
-        } catch (SchedulerException ignored) {}
+        } catch (SchedulerException ignored) {
+        }
         jobMapper.deleteById(id);
     }
 
@@ -119,12 +128,37 @@ public class SchedulerService {
 
     @Transactional
     public SchedulerDependency addDependency(long jobId, long dependsOnJobId) {
+        if (hasCycle(jobId, dependsOnJobId)) {
+            throw new ValidationException("Adding this dependency would create a cycle");
+        }
         SchedulerDependency dep = new SchedulerDependency();
         dep.setId(idGenerator.nextId());
         dep.setJobId(jobId);
         dep.setDependsOnJobId(dependsOnJobId);
         dependencyMapper.insert(dep);
         return dep;
+    }
+
+    private boolean hasCycle(long upstream, long downstream) {
+        Set<Long> visited = new HashSet<>();
+        Deque<Long> stack = new ArrayDeque<>();
+        stack.push(downstream);
+        while (!stack.isEmpty()) {
+            long current = stack.pop();
+            if (current == upstream) {
+                return true;
+            }
+            if (!visited.add(current)) {
+                continue;
+            }
+            List<SchedulerDependency> deps = dependencyMapper.selectList(
+                    Wrappers.<SchedulerDependency>lambdaQuery()
+                            .eq(SchedulerDependency::getJobId, current));
+            for (SchedulerDependency dep : deps) {
+                stack.push(dep.getDependsOnJobId());
+            }
+        }
+        return false;
     }
 
     public void removeDependency(long depId) {

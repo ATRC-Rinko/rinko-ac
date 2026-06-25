@@ -25,10 +25,14 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "rinko.ai")
 public class AiProperties {
 
-    /** 是否启用 AI 能力，默认 true */
+    /**
+     * 是否启用 AI 能力，默认 true
+     */
     private boolean enabled = true;
 
-    /** 模型字符串，由 ModelRegistry 解析，如 dashscope:qwen-plus */
+    /**
+     * 模型字符串，由 ModelRegistry 解析，如 dashscope:qwen-plus
+     */
     private String model = "dashscope:qwen-plus";
 
     private Agent agent = new Agent();
@@ -41,37 +45,57 @@ public class AiProperties {
     @Getter
     @Setter
     public static class Agent {
-        /** Agent 名称 */
+        /**
+         * Agent 名称
+         */
         private String name = "rinko-assistant";
-        /** 系统提示词 */
+        /**
+         * 系统提示词
+         */
         private String sysPrompt = "You are a helpful AI assistant.";
-        /** 工作区路径 */
+        /**
+         * 工作区路径
+         */
         private String workspace = "./data/ai/workspace";
-        /** 触发压缩的消息数阈值 */
+        /**
+         * 触发压缩的消息数阈值
+         */
         private int compactionTriggerMessages = 30;
-        /** 压缩后保留的消息数 */
+        /**
+         * 压缩后保留的消息数
+         */
         private int compactionKeepMessages = 10;
     }
 
     @Getter
     @Setter
     public static class Distributed {
-        /** 分布式存储类型：none | redis | mysql */
+        /**
+         * 分布式存储类型：none | redis | mysql
+         */
         private String storeType = "none";
         private Redis redis = new Redis();
         private Mysql mysql = new Mysql();
 
-        @Getter @Setter
+        @Getter
+        @Setter
         public static class Redis {
-            /** Jedis 连接 URI */
+            /**
+             * Jedis 连接 URI
+             */
             private String uri = "redis://localhost:6379";
-            /** Key 前缀 */
+            /**
+             * Key 前缀
+             */
             private String keyPrefix = "agentscope:";
         }
 
-        @Getter @Setter
+        @Getter
+        @Setter
         public static class Mysql {
-            /** 使用已有的 DataSource bean 名称 */
+            /**
+             * 使用已有的 DataSource bean 名称
+             */
             private String dataSourceBean = "dataSource";
         }
     }
@@ -79,20 +103,30 @@ public class AiProperties {
     @Getter
     @Setter
     public static class Filesystem {
-        /** 文件系统模式：local | remote | sandbox */
+        /**
+         * 文件系统模式：local | remote | sandbox
+         */
         private String mode = "local";
-        /** 隔离范围：session | user | agent | global */
+        /**
+         * 隔离范围：session | user | agent | global
+         */
         private String isolationScope = "user";
-        /** 匿名用户 fallback */
+        /**
+         * 匿名用户 fallback
+         */
         private String anonymousUserId = "_default";
     }
 
     @Getter
     @Setter
     public static class Sandbox {
-        /** 沙箱类型：docker | kubernetes */
+        /**
+         * 沙箱类型：docker | kubernetes
+         */
         private String type = "docker";
-        /** Docker 镜像 */
+        /**
+         * Docker 镜像
+         */
         private String image = "ubuntu:24.04";
     }
 
@@ -100,20 +134,30 @@ public class AiProperties {
     @Setter
     public static class Rag {
         private boolean enabled = false;
-        /** 向量存储类型：in-memory */
+        /**
+         * 向量存储类型：in-memory
+         */
         private String vectorStore = "in-memory";
-        /** 文档分块大小 */
+        /**
+         * 文档分块大小
+         */
         private int chunkSize = 500;
-        /** 检索 Top-K */
+        /**
+         * 检索 Top-K
+         */
         private int topK = 5;
     }
 
     @Getter
     @Setter
     public static class Memory {
-        /** 记忆存储：in-memory | redis */
+        /**
+         * 记忆存储：in-memory | redis
+         */
         private String type = "in-memory";
-        /** 对话历史最大条数 */
+        /**
+         * 对话历史最大条数
+         */
         private int maxHistory = 50;
     }
 }

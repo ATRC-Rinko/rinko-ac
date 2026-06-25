@@ -53,10 +53,12 @@ class OAuth2Controller(
                 oauth2Service.tokenAuthorizationCode(clientId, clientSecret, code, redirectUri)
                     .map { ApiResponse.success(it) }
             }
+
             "client_credentials" -> {
                 oauth2Service.tokenClientCredentials(clientId, clientSecret, scope)
                     .map { ApiResponse.success(it) }
             }
+
             else -> {
                 throw ValidationException("Unsupported grant_type: $grantType")
             }

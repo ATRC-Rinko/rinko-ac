@@ -1,9 +1,8 @@
 package com.rinko.ai.tool;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
 import io.agentscope.core.tool.Tool;
 import io.agentscope.core.tool.ToolParam;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -23,8 +22,8 @@ public class JsonTool {
     public String formatJson(
             @ToolParam(name = "json", description = "需要格式化的 JSON 字符串")
             String json) {
-            Object parsed = mapper.readValue(json, Object.class);
-            return mapper.writeValueAsString(parsed);
+        Object parsed = mapper.readValue(json, Object.class);
+        return mapper.writeValueAsString(parsed);
 
     }
 
@@ -39,17 +38,17 @@ public class JsonTool {
             String json,
             @ToolParam(name = "key", description = "查询 key，嵌套用 . 分隔")
             String key) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = mapper.readValue(json, Map.class);
-            String[] parts = key.split("\\.");
-            Object current = map;
-            for (String part : parts) {
-                if (current instanceof Map) {
-                    current = ((Map<?, ?>) current).get(part);
-                } else {
-                    return "无法访问路径: " + key;
-                }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> map = mapper.readValue(json, Map.class);
+        String[] parts = key.split("\\.");
+        Object current = map;
+        for (String part : parts) {
+            if (current instanceof Map) {
+                current = ((Map<?, ?>) current).get(part);
+            } else {
+                return "无法访问路径: " + key;
             }
-            return current != null ? current.toString() : "null";
+        }
+        return current != null ? current.toString() : "null";
     }
 }

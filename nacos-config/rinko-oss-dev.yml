@@ -20,7 +20,10 @@ spring:
           log-slow-sql: false
           slow-sql-millis: 2000
         wall:
-          enabled: false
+          enabled: true
+          config:
+            multi-statement-allow: false
+            none-base-statement-allow: false
 
 rinko:
   oss:

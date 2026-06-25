@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -21,13 +22,15 @@ public class VideoProcessor {
     private final StorageService storageService;
     private final OssProperties ossProperties;
     private final VideoResolutionRepository videoResolutionRepository;
-    private final SnowflakeIdGenerator idGenerator = new SnowflakeIdGenerator();
+    private final SnowflakeIdGenerator idGenerator;
 
     public VideoProcessor(StorageService storageService, OssProperties ossProperties,
-                           VideoResolutionRepository videoResolutionRepository) {
+                          VideoResolutionRepository videoResolutionRepository,
+                          SnowflakeIdGenerator idGenerator) {
         this.storageService = storageService;
         this.ossProperties = ossProperties;
         this.videoResolutionRepository = videoResolutionRepository;
+        this.idGenerator = idGenerator;
     }
 
     @Async
@@ -83,10 +86,16 @@ public class VideoProcessor {
             log.error("Video transcode failed for fileId={}", fileId, e);
         } finally {
             if (originalFile != null) {
-                try { Files.deleteIfExists(originalFile); } catch (IOException ignored) {}
+                try {
+                    Files.deleteIfExists(originalFile);
+                } catch (IOException ignored) {
+                }
             }
             if (tempDir != null) {
-                try { Files.deleteIfExists(tempDir); } catch (IOException ignored) {}
+                try {
+                    Files.deleteIfExists(tempDir);
+                } catch (IOException ignored) {
+                }
             }
         }
     }

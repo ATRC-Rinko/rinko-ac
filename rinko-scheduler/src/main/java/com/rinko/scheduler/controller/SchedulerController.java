@@ -1,12 +1,15 @@
 package com.rinko.scheduler.controller;
 
 import com.rinko.infra.dto.ApiResponse;
+import com.rinko.scheduler.model.dto.CreateJobRequest;
+import com.rinko.scheduler.model.entity.SchedulerJob;
 import com.rinko.scheduler.model.vo.SchedulerExecutionVO;
 import com.rinko.scheduler.model.vo.SchedulerJobVO;
 import com.rinko.scheduler.service.SchedulerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +35,14 @@ public class SchedulerController {
 
     @PostMapping("/jobs")
     @Operation(summary = "创建任务")
-    public ApiResponse<SchedulerJobVO> createJob(@RequestBody com.rinko.scheduler.model.entity.SchedulerJob job, HttpServletResponse response) {
+    public ApiResponse<SchedulerJobVO> createJob(@Valid @RequestBody CreateJobRequest req, HttpServletResponse response) {
+        SchedulerJob job = new SchedulerJob();
+        job.setName(req.name());
+        job.setType(req.type());
+        job.setCronExpression(req.cronExpression());
+        job.setConfig(req.config());
+        job.setEnabled(req.enabled());
+        job.setMaxRetries(req.maxRetries());
         response.setStatus(201);
         return ApiResponse.success(SchedulerJobVO.from(schedulerService.createJob(job)));
     }
@@ -67,7 +77,10 @@ public class SchedulerController {
 
     @GetMapping("/executions")
     @Operation(summary = "查询执行历史")
-    public ApiResponse<List<SchedulerExecutionVO>> getExecutions(@RequestParam long jobId) {
+    public ApiResponse<List<SchedulerExecutionVO>> getExecutions(
+            @RequestParam long jobId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(schedulerService.getExecutions(jobId).stream()
                 .map(SchedulerExecutionVO::from)
                 .toList());

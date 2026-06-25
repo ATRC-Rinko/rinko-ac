@@ -3,6 +3,7 @@ package com.rinko.auth.security
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -13,6 +14,7 @@ class TokenBlacklistService(
 ) {
     companion object {
         private const val BLACKLIST_PREFIX = "jwt:blacklist:"
+        private val objectMapper = ObjectMapper()
     }
 
     fun add(tokenId: String, expiration: Date): Mono<Boolean> {
@@ -30,7 +32,6 @@ class TokenBlacklistService(
             val parts = token.split(".")
             if (parts.size < 2) return Mono.just(true)
             val payload = String(Base64.getUrlDecoder().decode(parts[1]))
-            // Simple extraction of jti without full parse (for blacklist check)
             val jti = extractJti(payload)
             if (jti == null) return Mono.just(true)
             redisTemplate.hasKey("$BLACKLIST_PREFIX$jti")
@@ -39,8 +40,13 @@ class TokenBlacklistService(
         }
     }
 
+    /** Parse JWT payload JSON to extract the jti claim. Uses Jackson instead of regex for correctness. */
     private fun extractJti(payload: String): String? {
-        val regex = """"jti"\s*:\s*"([^"]+)"""".toRegex()
-        return regex.find(payload)?.groupValues?.get(1)
+        return try {
+            val node = objectMapper.readTree(payload)
+            node.get("jti")?.asText()
+        } catch (e: Exception) {
+            null
+        }
     }
 }

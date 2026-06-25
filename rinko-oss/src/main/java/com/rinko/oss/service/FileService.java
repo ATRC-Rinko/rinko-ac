@@ -7,10 +7,10 @@ import com.rinko.infra.exception.InternalException;
 import com.rinko.infra.exception.NotFoundException;
 import com.rinko.infra.id.SnowflakeIdGenerator;
 import com.rinko.oss.config.OssProperties;
+import com.rinko.oss.media.MediaProcessingService;
 import com.rinko.oss.model.entity.FileMetadata;
 import com.rinko.oss.model.entity.FileVersion;
 import com.rinko.oss.model.entity.VideoResolutionEntity;
-import com.rinko.oss.media.MediaProcessingService;
 import com.rinko.oss.repository.FileMetadataMapper;
 import com.rinko.oss.repository.FileVersionRepository;
 import com.rinko.oss.repository.VideoResolutionRepository;
@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -215,7 +217,9 @@ public class FileService {
         storageService.abortMultipartUpload(session.key, uploadId);
     }
 
-    public record MultipartSession(String uploadId, long fileId, String key, String originalName, String contentType, Long parentId) {}
+    public record MultipartSession(String uploadId, long fileId, String key, String originalName, String contentType,
+                                   Long parentId) {
+    }
 
     private byte[] readAllBytes(InputStream is) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();

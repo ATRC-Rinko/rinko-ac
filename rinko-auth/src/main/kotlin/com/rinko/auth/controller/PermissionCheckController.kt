@@ -1,10 +1,11 @@
 package com.rinko.auth.controller
 
+import com.rinko.auth.dto.PermissionCheckRequest
 import com.rinko.auth.service.PermissionEvaluator
 import com.rinko.infra.dto.ApiResponse
-import com.rinko.infra.exception.ValidationException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -17,12 +18,8 @@ class PermissionCheckController(
 
     @PostMapping("/check")
     @Operation(summary = "权限校验：检查用户是否拥有指定权限")
-    fun checkPermission(@RequestBody body: Map<String, Any>): Mono<ApiResponse<Map<String, Boolean>>> {
-        val userId = (body["userId"] as? Number)?.toLong()
-            ?: throw ValidationException("userId is required")
-        val requiredPermission = body["requiredPermission"] as? String
-            ?: throw ValidationException("requiredPermission is required")
-        return permissionEvaluator.checkPermission(userId, requiredPermission)
+    fun checkPermission(@Valid @RequestBody req: PermissionCheckRequest): Mono<ApiResponse<Map<String, Boolean>>> {
+        return permissionEvaluator.checkPermission(req.userId, req.requiredPermission)
             .map { authorized -> ApiResponse.success(mapOf("authorized" to authorized)) }
     }
 

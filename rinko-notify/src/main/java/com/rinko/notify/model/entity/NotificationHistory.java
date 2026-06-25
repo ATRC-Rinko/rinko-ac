@@ -14,25 +14,43 @@ public class NotificationHistory {
     @TableId(type = IdType.INPUT)
     /** 主键ID */
     private Long id;
-    /** 通知渠道（IN_APP / EMAIL / SMS / DINGTALK / WECOM） */
+    /**
+     * 通知渠道（IN_APP / EMAIL / SMS / DINGTALK / WECOM）
+     */
     private String channel;
-    /** 模板编码 */
+    /**
+     * 模板编码
+     */
     private String templateCode;
-    /** 收件人 */
+    /**
+     * 收件人
+     */
     private String recipient;
-    /** 通知主题 */
+    /**
+     * 通知主题
+     */
     private String subject;
-    /** 通知内容 */
+    /**
+     * 通知内容
+     */
     private String content;
-    /** 发送状态（PENDING / SUCCESS / FAILED） */
+    /**
+     * 发送状态（PENDING / SUCCESS / FAILED）
+     */
     private String status;
     @TableField("is_read")
     /** 是否已读 */
     private boolean isRead;
-    /** 读取时间 */
+    /**
+     * 读取时间
+     */
     private LocalDateTime readAt;
-    /** 错误信息 */
+    /**
+     * 错误信息
+     */
     private String errorMessage;
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     private LocalDateTime createdAt;
 }

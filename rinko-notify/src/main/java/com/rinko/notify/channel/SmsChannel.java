@@ -2,8 +2,8 @@ package com.rinko.notify.channel;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.rinko.notify.model.entity.NotificationHistory;
-import com.rinko.notify.repository.NotificationHistoryMapper;
 import com.rinko.notify.provider.SmsProvider;
+import com.rinko.notify.repository.NotificationHistoryMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,7 +23,9 @@ public class SmsChannel implements NotificationChannel {
     }
 
     @Override
-    public String getType() { return "SMS"; }
+    public String getType() {
+        return "SMS";
+    }
 
     @Override
     public void send(NotificationHistory history) {
