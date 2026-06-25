@@ -31,11 +31,10 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Spring Web（可选，由消费模块引入） -->
+        <!-- Spring Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <!-- Spring Boot Auto-Configuration -->
