@@ -23,6 +23,7 @@
         <module>rinko-infra</module>
         <module>rinko-ai</module>
         <module>rinko-channel</module>
+        <module>rinko-channel-qq</module>
         <module>rinko-gateway</module>
         <module>rinko-auth</module>
         <module>rinko-oss</module>
@@ -182,6 +183,11 @@
             <dependency>
                 <groupId>com.rinko</groupId>
                 <artifactId>rinko-ai</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rinko</groupId>
+                <artifactId>rinko-channel</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
