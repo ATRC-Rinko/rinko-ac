@@ -22,11 +22,6 @@
     <modules>
         <module>rinko-infra</module>
         <module>rinko-ai</module>
-        <module>rinko-channel</module>
-        <module>rinko-channel-qq</module>
-        <module>rinko-channel-wechat</module>
-        <module>rinko-channel-dingtalk</module>
-        <module>rinko-channel-discord</module>
         <module>rinko-gateway</module>
         <module>rinko-auth</module>
         <module>rinko-oss</module>
