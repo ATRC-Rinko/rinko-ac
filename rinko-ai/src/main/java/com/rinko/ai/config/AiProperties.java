@@ -32,6 +32,9 @@ public class AiProperties {
     private String model = "dashscope:qwen-plus";
 
     private Agent agent = new Agent();
+    private Distributed distributed = new Distributed();
+    private Filesystem filesystem = new Filesystem();
+    private Sandbox sandbox = new Sandbox();
     private Rag rag = new Rag();
     private Memory memory = new Memory();
 
@@ -48,6 +51,49 @@ public class AiProperties {
         private int compactionTriggerMessages = 30;
         /** 压缩后保留的消息数 */
         private int compactionKeepMessages = 10;
+    }
+
+    @Getter
+    @Setter
+    public static class Distributed {
+        /** 分布式存储类型：none | redis | mysql */
+        private String storeType = "none";
+        private Redis redis = new Redis();
+        private Mysql mysql = new Mysql();
+
+        @Getter @Setter
+        public static class Redis {
+            /** Jedis 连接 URI */
+            private String uri = "redis://localhost:6379";
+            /** Key 前缀 */
+            private String keyPrefix = "agentscope:";
+        }
+
+        @Getter @Setter
+        public static class Mysql {
+            /** 使用已有的 DataSource bean 名称 */
+            private String dataSourceBean = "dataSource";
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Filesystem {
+        /** 文件系统模式：local | remote | sandbox */
+        private String mode = "local";
+        /** 隔离范围：session | user | agent | global */
+        private String isolationScope = "user";
+        /** 匿名用户 fallback */
+        private String anonymousUserId = "_default";
+    }
+
+    @Getter
+    @Setter
+    public static class Sandbox {
+        /** 沙箱类型：docker | kubernetes */
+        private String type = "docker";
+        /** Docker 镜像 */
+        private String image = "ubuntu:24.04";
     }
 
     @Getter

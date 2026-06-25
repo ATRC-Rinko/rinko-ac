@@ -498,6 +498,143 @@ public class AiReportJob implements Job {
 
 ---
 
+## 生产部署
+
+单机开发（默认）只适合本地调试。多副本部署必须换掉以下组件：
+
+| 维度 | 开发默认 | 生产替换 |
+|------|----------|----------|
+| AgentStateStore | JsonFileAgentStateStore（本地 JSON） | RedisAgentStateStore / MysqlAgentStateStore |
+| Filesystem | LocalFilesystem（本机磁盘） | RemoteFilesystemSpec（共享 KV）或 SandboxFilesystemSpec |
+| Sandbox 快照 | NoopSnapshotSpec（容器销毁即丢） | OssSnapshotSpec / RedisSnapshotSpec |
+| Skill 来源 | workspace/skills/ | GitSkillRepository / MysqlSkillRepository |
+| 观测 | 无 tracing | OtelTracingMiddleware + OpenTelemetry |
+
+### 一键分布式配置
+
+引入扩展依赖后，用 DistributedStore 一键配置所有分布式组件：
+
+```java
+import io.agentscope.extensions.redis.RedisDistributedStore;
+import io.agentscope.harness.agent.DistributedStore;
+import redis.clients.jedis.JedisPooled;
+
+// 应用启动时创建一次
+JedisPooled jedis = new JedisPooled(System.getenv("REDIS_URI"));
+DistributedStore store = RedisDistributedStore.fromJedis(jedis);
+
+HarnessAgent agent = HarnessAgent.builder()
+    .name("production-agent")
+    .model("dashscope:qwen-plus")
+    .workspace(workspace)
+    .distributedStore(store)        // 自动注入 stateStore + baseStore + snapshotSpec + executionGuard
+    .filesystem(new DockerFilesystemSpec()
+            .image("python:3.12-slim")
+            .isolationScope(IsolationScope.USER))
+    .compaction(CompactionConfig.builder()
+            .triggerMessages(50)
+            .keepMessages(20)
+            .build())
+    .build();
+```
+
+使用 `distributedStore(...)` 后，以下组件自动注入：
+
+- **AgentStateStore**：对话上下文、压缩摘要跨副本恢复
+- **BaseStore**：MEMORY.md、memory/、skills/ 等 workspace 路径共享 KV
+- **SandboxSnapshotSpec**：沙箱 workspace 快照持久化
+- **SandboxExecutionGuard**：跨节点 sandbox 执行串行化
+
+### 多副本 + 沙箱模板
+
+```java
+DistributedStore store = RedisDistributedStore.fromJedis(jedis);
+
+// Docker 沙箱 + Redis 状态存储 + OSS 快照（大对象）
+HarnessAgent agent = HarnessAgent.builder()
+    .name("coding-agent")
+    .model("deepseek:deepseek-chat")
+    .workspace(Paths.get("/var/agentscope/workspace"))
+    .distributedStore(store)
+    .filesystem(new DockerFilesystemSpec()
+            .image("ubuntu:24.04")
+            .isolationScope(IsolationScope.SESSION))  // 每会话独立沙箱
+    .compaction(CompactionConfig.builder()
+            .triggerMessages(50)
+            .keepMessages(20)
+            .build())
+    .skillRepository(MysqlSkillRepository.builder(dataSource)
+            .writeable(false)              // 只读分发
+            .build())
+    .middlewares(List.of(new OtelTracingMiddleware()))
+    .build();
+
+// HTTP handler 中 —— 每次调用传入 RuntimeContext
+agent.call(msg, RuntimeContext.builder()
+        .userId(tenantId + ":" + userId)
+        .sessionId(agentId + ":" + sessionId)
+        .build()).block();
+```
+
+### OSS 混合存储
+
+避免把大文件写 Redis：
+
+```java
+DistributedStore redisStore = RedisDistributedStore.fromJedis(jedis);
+DistributedStore ossStore = OssDistributedStore.create(
+        ossClient, "snapshot-bucket", "prod/");
+
+DistributedStore store = DistributedStore.builder()
+        .agentStateStore(redisStore.agentStateStore())
+        .baseStore(redisStore.baseStore())
+        .sandboxSnapshotSpec(ossStore.sandboxSnapshotSpec())   // 大对象走 OSS
+        .sandboxExecutionGuard(redisStore.sandboxExecutionGuard())
+        .build();
+```
+
+### Filesystem 三种模式
+
+| 模式 | 配置 | shell | 适用 |
+|------|------|-------|------|
+| 本机 | 默认（不配） | ✅ | 单进程 / 信任环境 |
+| 共享存储 | RemoteFilesystemSpec(store) + IsolationScope.USER | ❌ | 多副本共享长期记忆 |
+| 沙箱 | DockerFilesystemSpec / K8sFilesystemSpec | ✅ 沙箱内 | 不可信代码 / 多用户隔离 |
+
+### 生产 checklist
+
+1. ✅ `userId` + `sessionId` 二元组寻址 —— 防止跨用户串读
+2. ✅ `RuntimeContext` 每次 call 都传入 —— 不传则共享 defaultSessionId
+3. ✅ 定好 `IsolationScope` 再上线 —— 改了等于换命名空间，旧数据不迁移
+4. ✅ Skill 用 MysqlSkillRepository(writeable=false) —— 平台集中治理，agent 只读
+5. ✅ 开 `enableSkillManageTool` 时必须配 `enableSkillPromotionGate` —— 禁止 autoPromote
+6. ✅ `OtelTracingMiddleware` + OpenTelemetry —— 可观测
+7. ✅ K8s 多副本里绝不用本地 `JsonFileAgentStateStore` —— builder 会直接抛异常
+
+### 本模块内置配置
+
+模块通过 `AiProperties` 提供声明式配置（无需写 Java 代码）：
+
+```yaml
+rinko.ai:
+  distributed:
+    store-type: redis             # none | redis | mysql
+    redis:
+      uri: redis://prod-redis:6379
+      key-prefix: myapp:
+  filesystem:
+    mode: remote                  # local | remote | sandbox
+    isolation-scope: user
+    anonymous-user-id: _default
+  sandbox:
+    type: docker
+    image: ubuntu:24.04
+```
+
+引入 `agentscope-extensions-redis` 依赖后，设置 `rinko.ai.distributed.store-type=redis` 即可自动创建 `DistributedStore` Bean。生产项目建议直接在 `@Configuration` 中显式构建 `HarnessAgent`，完整控制所有参数。
+
+---
+
 ## 扩展指南
 
 ### 替换 RAG 为 pgvector
