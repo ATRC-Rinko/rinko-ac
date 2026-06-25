@@ -46,4 +46,5 @@ module com.rinko.infra {
 
     // ===== Optional: only present when consumer pulls in webmvc =====
     requires static spring.webmvc;
+    requires druid;
 }
